@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "org": "Registre des congés",
+  "pays": "benin",
+  "orderV2": true,
+  "calV2": true,
+  "staff": [
+    {
+      "id": "mqxrgcjb3uv89",
+      "nom": "ADJAGBA",
+      "prenom": "Franck",
+      "full": "ADJAGBA Franck",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#1E4C9A",
+      "matricule": "EMP-001"
+    },
+    {
+      "id": "mqxrgcjb8xffs",
+      "nom": "DEKA-JAMES",
+      "prenom": "Jean-Clement",
+      "full": "DEKA-JAMES Jean-Clement",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#2C6BBF",
+      "matricule": "EMP-002"
+    },
+    {
+      "id": "mqxrgcjbsbgx6",
+      "nom": "TIANDO",
+      "prenom": "Batipa Imelda",
+      "full": "TIANDO Batipa Imelda",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#3B5BA5",
+      "matricule": "EMP-003"
+    },
+    {
+      "id": "mqxrgcjbxs9vv",
+      "nom": "GOUN",
+      "prenom": "Sedjro Aurel Desnos",
+      "full": "GOUN Sedjro Aurel Desnos",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#1F3A6B",
+      "matricule": "EMP-004"
+    },
+    {
+      "id": "mqxrgcjbegbam",
+      "nom": "KAHOME M.",
+      "prenom": "Elysee",
+      "full": "KAHOME M. Elysee",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#2A567D",
+      "matricule": "EMP-005"
+    },
+    {
+      "id": "mqxrgcjbnc8on",
+      "nom": "KOUKUI",
+      "prenom": "Guillaume",
+      "full": "Guillaume KOUKUI",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#4F76C9",
+      "matricule": "EMP-006"
+    },
+    {
+      "id": "mqxrgcjbh2q9b",
+      "nom": "PODANHO",
+      "prenom": "Edouard",
+      "full": "PODANHO Edouard",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#0E6E8C",
+      "matricule": "EMP-007"
+    },
+    {
+      "id": "mqxrgcjbb32k1",
+      "nom": "RONG",
+      "prenom": "Huang",
+      "full": "RONG Huang",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#5B7AA8",
+      "matricule": "EMP-008"
+    },
+    {
+      "id": "mqxrgcjbvc1qo",
+      "nom": "YANG",
+      "prenom": "Lina",
+      "full": "YANG Lina",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#C7A23F",
+      "matricule": "EMP-009"
+    },
+    {
+      "id": "mqxrgcjb6xyla",
+      "nom": "ZHAO",
+      "prenom": "Bin Bin",
+      "full": "ZHAO Bin Bin",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#9C7A2A",
+      "matricule": "EMP-010"
+    },
+    {
+      "id": "mqxrgcjb496qb",
+      "nom": "Chen",
+      "prenom": "Huifang",
+      "full": "Chen Huifang",
+      "poste": "",
+      "departement": "",
+      "droitAnnuel": 30,
+      "report": 0,
+      "color": "#7E611A",
+      "matricule": "EMP-011"
+    }
+  ],
+  "leaves": [],
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "nom": "Jour de l'An"
+    },
+    {
+      "date": "2026-01-10",
+      "nom": "Fête des religions traditionnelles"
+    },
+    {
+      "date": "2026-03-20",
+      "nom": "Aïd el-Fitr (Ramadan) ~"
+    },
+    {
+      "date": "2026-04-06",
+      "nom": "Lundi de Pâques"
+    },
+    {
+      "date": "2026-05-01",
+      "nom": "Fête du Travail"
+    },
+    {
+      "date": "2026-05-14",
+      "nom": "Ascension"
+    },
+    {
+      "date": "2026-05-25",
+      "nom": "Lundi de Pentecôte"
+    },
+    {
+      "date": "2026-05-27",
+      "nom": "Tabaski / Aïd el-Kébir ~"
+    },
+    {
+      "date": "2026-08-01",
+      "nom": "Fête de l'Indépendance"
+    },
+    {
+      "date": "2026-08-15",
+      "nom": "Assomption"
+    },
+    {
+      "date": "2026-08-26",
+      "nom": "Maouloud ~"
+    },
+    {
+      "date": "2026-11-01",
+      "nom": "Toussaint"
+    },
+    {
+      "date": "2026-12-25",
+      "nom": "Noël"
+    }
+  ],
+  "year": 2026
+}
