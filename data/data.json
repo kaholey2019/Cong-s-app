@@ -138,7 +138,20 @@
       "matricule": "EMP-011"
     }
   ],
-  "leaves": [],
+  "leaves": [
+    {
+      "id": "mqxsr18z6hnxe",
+      "staffId": "mqxrgcjb8xffs",
+      "type": "administratif",
+      "debut": "2026-07-18",
+      "fin": "2026-09-15",
+      "jours": 60,
+      "statut": "en_attente",
+      "justificatif": "oui",
+      "motif": "",
+      "cree": "2026-06-28"
+    }
+  ],
   "holidays": [
     {
       "date": "2026-01-01",
