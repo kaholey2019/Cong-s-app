@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre des congés — Gestion administrative & arrêts maladie</title>
+<meta name="theme-color" content="#15223E">
+<meta name="description" content="Gestion des congés administratifs et arrêts maladie">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Congés">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon-48.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#DCE6F4;
+    --surface:#FFFFFF;
+    --surface-2:#F2F6FC;
+    --ink:#15223E;
+    --ink-soft:#566083;
+    --ink-faint:#8993AD;
+    --line:#E0E6F1;
+    --line-strong:#CAD3E6;
+    --accent:#1E4C9A;          /* bleu roi — actions principales */
+    --accent-ink:#16387A;
+    --accent-soft:#E8EFFB;
+    --gold:#C7A23F;            /* or — signature */
+    --gold-soft:#F5EDD6;
+    --gold-ink:#7E611A;
+    /* type de congé */
+    --adm:#1E4C9A; --adm-bg:#E8EFFB; --adm-ink:#16387A;     /* bleu */
+    --mal:#9C7A2A; --mal-bg:#F4EAD2; --mal-ink:#6B5012;     /* bronze doré */
+    /* statuts */
+    --ok:#1F8A4C; --wait:#B5740B; --no:#C9342E;
+    --radius:14px; --radius-sm:9px;
+    --shadow:0 1px 2px rgba(21,35,63,.05),0 8px 24px -12px rgba(21,35,63,.18);
+    --shadow-lg:0 24px 60px -20px rgba(21,35,63,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    -webkit-font-smoothing:antialiased;line-height:1.5;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace}
+  h1,h2,h3{font-family:'Spectral',Georgia,serif;font-weight:600;margin:0;letter-spacing:-.01em}
+  button{font-family:inherit;cursor:pointer}
+  ::selection{background:var(--accent-soft)}
+
+  /* ---------- Layout ---------- */
+  .app{max-width:1240px;margin:0 auto;padding:0 22px 80px}
+  header.top{
+    position:sticky;top:0;z-index:40;background:rgba(220,230,244,.85);
+    backdrop-filter:saturate(140%) blur(10px);
+    border-bottom:1px solid var(--line);margin:0 -22px 0;padding:0 22px;
+  }
+  .top-row{display:flex;align-items:center;gap:18px;padding:16px 0 14px;max-width:1240px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:13px;min-width:0}
+  .seal{
+    width:42px;height:42px;border-radius:11px;flex:none;
+    background:linear-gradient(150deg,#D9B95A,#BD9530);
+    color:var(--accent-ink);display:grid;place-items:center;font-family:'Spectral';
+    font-weight:700;font-size:19px;box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.35)
+  }
+  .brand h1{font-size:18px;line-height:1.1}
+  .brand .sub{font-size:11.5px;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+  .top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .clock{text-align:right;font-size:12px;color:var(--ink-soft);line-height:1.35}
+  .clock b{display:block;color:var(--ink);font-size:13px;font-weight:600;text-transform:capitalize}
+
+  nav.tabs{display:flex;gap:2px;overflow-x:auto;padding-bottom:0}
+  nav.tabs button{
+    background:none;border:none;padding:11px 15px 13px;font-size:13.5px;font-weight:500;
+    color:var(--ink-soft);border-bottom:2px solid transparent;white-space:nowrap;
+    transition:color .15s,border-color .15s
+  }
+  nav.tabs button:hover{color:var(--ink)}
+  nav.tabs button.active{color:var(--accent-ink);border-bottom-color:var(--accent);font-weight:600}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);
+    background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:var(--radius-sm);
+    font-size:13px;font-weight:500;transition:all .14s;white-space:nowrap
+  }
+  .btn:hover{border-color:var(--ink-faint);background:var(--surface-2)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow)}
+  .btn.primary:hover{background:var(--accent-ink);border-color:var(--accent-ink)}
+  .btn.sm{padding:6px 10px;font-size:12px;gap:5px}
+  .btn.ghost{border-color:transparent;background:transparent;color:var(--ink-soft)}
+  .btn.ghost:hover{background:var(--surface-2);color:var(--ink)}
+  .btn.danger:hover{border-color:var(--no);color:var(--no);background:#fdf0ef}
+  .btn svg{width:15px;height:15px;flex:none}
+
+  /* ---------- Cards ---------- */
+  .view{padding-top:26px;animation:rise .35s ease both}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+  .view-head h2{font-size:23px}
+  .view-head p{margin:4px 0 0;color:var(--ink-soft);font-size:13.5px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:17px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .lab{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600}
+  .kpi .num{font-family:'Spectral';font-size:38px;font-weight:600;line-height:1;margin-top:9px;letter-spacing:-.02em}
+  .kpi .hint{font-size:11.5px;color:var(--ink-faint);margin-top:6px}
+  .kpi .edge{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+  .kpi.k-mal .edge{background:var(--mal)} .kpi.k-wait .edge{background:var(--wait)} .kpi.k-adm .edge{background:var(--adm)}
+
+  .grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel-h{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line)}
+  .panel-h h3{font-size:15.5px}
+  .panel-h .tag{font-size:11px;font-weight:600;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);padding:3px 8px;border-radius:20px}
+  .panel-b{padding:8px 18px 16px}
+
+  /* ---------- People rows ---------- */
+  .person{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .person:last-child{border-bottom:none}
+  .av{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center;color:#fff;font-weight:600;font-size:13px;font-family:'Inter'}
+  .p-main{min-width:0;flex:1}
+  .p-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .p-meta{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .p-right{text-align:right;flex:none}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;line-height:1.4;white-space:nowrap}
+  .chip.adm{background:var(--adm-bg);color:var(--adm-ink)}
+  .chip.mal{background:var(--mal-bg);color:var(--mal-ink)}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500}
+  .st.ok{color:var(--ok)} .st.wait{color:var(--wait)} .st.no{color:var(--no)}
+  .st.ok .dot{background:var(--ok)} .st.wait .dot{background:var(--wait)} .st.no .dot{background:var(--no)}
+
+  .empty{text-align:center;color:var(--ink-faint);padding:30px 12px;font-size:13.5px}
+  .empty svg{width:34px;height:34px;opacity:.4;margin-bottom:8px}
+
+  /* ---------- Balance bars ---------- */
+  .bal{margin-top:7px}
+  .bal-track{height:7px;border-radius:6px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+  .bal-fill{height:100%;background:var(--adm);border-radius:6px;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .bal-fill.warn{background:var(--wait)} .bal-fill.crit{background:var(--no)}
+  .bal-lab{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-soft);margin-top:5px}
+
+  /* ---------- Staff cards grid ---------- */
+  .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+  .scard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+  .scard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);border-color:var(--line-strong)}
+  .scard-top{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+  .scard-top .av{width:44px;height:44px;font-size:15px;border-radius:11px}
+  .scard-top .p-name{font-size:15px}
+  .matricule{font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-faint)}
+
+  /* ---------- Table ---------- */
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .field{position:relative;display:flex;align-items:center}
+  .field svg{position:absolute;left:10px;width:15px;height:15px;color:var(--ink-faint);pointer-events:none}
+  input,select,textarea{
+    font-family:inherit;font-size:13px;color:var(--ink);background:var(--surface);
+    border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:8px 11px;outline:none;transition:border-color .14s,box-shadow .14s
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field input{padding-left:32px;min-width:200px}
+  select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C6781' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;-webkit-appearance:none;appearance:none}
+
+  .tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:600;padding:12px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:var(--surface-2)}
+  td .row-name{font-weight:600;font-size:13px}
+  td.actions{text-align:right;white-space:nowrap}
+  .icon-btn{border:none;background:none;padding:5px;border-radius:7px;color:var(--ink-faint);display:inline-grid;place-items:center}
+  .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+  .icon-btn.del:hover{color:var(--no)}
+  .icon-btn svg{width:16px;height:16px}
+
+  /* ---------- Timeline / Calendrier ---------- */
+  .tl-head{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .year-pick{display:flex;align-items:center;gap:4px;background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:3px}
+  .year-pick button{border:none;background:none;width:30px;height:30px;border-radius:6px;color:var(--ink-soft);display:grid;place-items:center}
+  .year-pick button:hover{background:var(--surface-2);color:var(--ink)}
+  .year-pick .yr{font-family:'Spectral';font-weight:600;font-size:18px;min-width:62px;text-align:center}
+  .legend{display:flex;gap:16px;margin-left:auto;font-size:12px;color:var(--ink-soft);flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:13px;height:13px;border-radius:4px;display:inline-block}
+
+  .tl{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
+  .tl-inner{min-width:880px}
+  .tl-months{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--line)}
+  .tl-months .corner{padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:600}
+  .tl-months .mscale{display:grid;grid-template-columns:repeat(12,1fr)}
+  .tl-months .mscale-c{font-size:11px;color:var(--ink-soft);font-weight:600;text-align:center;padding:10px 0;border-left:1px solid var(--line)}
+  .tl-row{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--line)}
+  .tl-row:last-child{border-bottom:none}
+  .tl-row:hover{background:var(--surface-2)}
+  .tl-name{padding:10px 16px;display:flex;align-items:center;gap:9px;min-width:0}
+  .tl-name .av{width:28px;height:28px;font-size:11px;border-radius:8px}
+  .tl-name .nm{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tl-track{position:relative;height:48px;margin:6px 0}
+  .tl-grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,1fr);pointer-events:none}
+  .tl-grid div{border-left:1px solid var(--line)}
+  .tl-today{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);opacity:.75;pointer-events:none}
+  .seg{position:absolute;top:9px;height:30px;border-radius:6px;min-width:4px;cursor:pointer;display:flex;align-items:center;padding:0 6px;overflow:hidden;transition:filter .12s,transform .12s}
+  .seg:hover{filter:brightness(.94);transform:scaleY(1.06);z-index:3}
+  .seg.adm{background:var(--adm-bg);border:1px solid var(--adm)}
+  .seg.mal{background:var(--mal-bg);border:1px solid var(--mal)}
+  .seg.pend{opacity:.55;border-style:dashed}
+  .seg small{font-size:10px;font-weight:600;white-space:nowrap}
+  .seg.adm small{color:var(--adm-ink)} .seg.mal small{color:var(--mal-ink)}
+
+  /* ---------- Modal ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(21,35,63,.42);backdrop-filter:blur(3px);z-index:90;display:flex;align-items:flex-start;justify-content:center;padding:36px 16px;overflow-y:auto;animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--surface);border-radius:18px;width:100%;max-width:560px;box-shadow:var(--shadow-lg);animation:pop .26s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+  .modal.wide{max-width:720px}
+  @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+  .modal-h{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 22px 16px;border-bottom:1px solid var(--line)}
+  .modal-h h3{font-size:18px}
+  .modal-h p{margin:3px 0 0;font-size:12.5px;color:var(--ink-soft)}
+  .modal-b{padding:20px 22px;max-height:65vh;overflow-y:auto}
+  .modal-f{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px;border-top:1px solid var(--line);background:var(--surface-2)}
+  .x{border:none;background:none;color:var(--ink-faint);padding:6px;border-radius:8px;display:grid;place-items:center}
+  .x:hover{background:var(--surface-2);color:var(--ink)} .x svg{width:18px;height:18px}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fg{display:flex;flex-direction:column;gap:6px}
+  .fg.full{grid-column:1/-1}
+  .fg label{font-size:12px;font-weight:600;color:var(--ink)}
+  .fg .help{font-size:11.5px;color:var(--ink-faint);font-weight:400}
+  .fg input,.fg select,.fg textarea{width:100%}
+  .seg-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .seg-toggle label{display:flex;align-items:center;gap:8px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:10px 12px;cursor:pointer;font-size:13px;font-weight:500;transition:all .14s}
+  .seg-toggle input{display:none}
+  .seg-toggle label:has(input:checked){border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
+  .seg-toggle label .swatch{width:11px;height:11px;border-radius:3px}
+  .calc-note{font-size:12.5px;background:var(--accent-soft);color:var(--accent-ink);border-radius:var(--radius-sm);padding:9px 12px;font-weight:500;display:flex;align-items:center;gap:7px}
+  .calc-note svg{width:15px;height:15px;flex:none}
+
+  /* detail modal */
+  .det-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+  .det-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 14px}
+  .det-stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:600}
+  .det-stat .v{font-family:'Spectral';font-size:26px;font-weight:600;margin-top:5px}
+  .det-stat .v small{font-size:13px;color:var(--ink-faint);font-family:'Inter'}
+  .hist-item{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .hist-item:last-child{border-bottom:none}
+
+  .pills{display:flex;flex-wrap:wrap;gap:8px}
+  .pill-day{background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:5px 9px;font-size:12px;display:flex;align-items:center;gap:7px}
+  .pill-day .mono{color:var(--ink-soft)}
+  .pill-day button{border:none;background:none;color:var(--ink-faint);cursor:pointer;padding:0;display:grid;place-items:center}
+  .pill-day button:hover{color:var(--no)}
+
+  /* lock screen */
+  .lock{position:fixed;inset:0;background:var(--bg);z-index:300;display:grid;place-items:center;padding:20px;animation:fade .25s}
+  .lock-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-lg);padding:32px 28px;width:100%;max-width:340px}
+  .lock-card .seal{margin:0 auto 16px}
+  .lock-card h2{text-align:center;font-size:20px}
+  .lock-card .ldesc{text-align:center;color:var(--ink-soft);font-size:13px;margin:6px 0 18px}
+  .lock-card input{width:100%;text-align:center;letter-spacing:3px;font-size:16px}
+  .lock-err{color:var(--no);font-size:12.5px;text-align:center;height:16px;margin:8px 0}
+
+  /* toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:all .3s;z-index:200;display:flex;align-items:center;gap:9px}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast svg{width:16px;height:16px;color:#6ee7b7}
+
+  @media (max-width:880px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .grid2{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+    .clock{display:none}
+    .brand h1{font-size:16px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media print{
+    body > *:not(#printArea){display:none !important;}
+    #printArea{display:block !important;}
+    @page{margin:14mm;}
+  }
+  #printArea{display:none;}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <div class="seal" id="seal">R</div>
+      <div>
+        <h1 id="orgName">Registre des congés</h1>
+        <div class="sub">Gestion administrative &amp; arrêts maladie</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="clock"><b id="clockDate"></b><span id="clockTime"></span></div>
+      <button class="btn ghost" onclick="printReport()" title="Vue imprimable / PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+        PDF
+      </button>
+      <button class="btn primary" onclick="openLeaveForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Enregistrer un congé
+      </button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<main class="app" id="main"></main>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   Donnees & persistance -- version partagee (API serveur + cache local)
+   ============================================================ */
+const KEY = 'lms_data_v1';
+const API_BASE = '';
+const Store = {
+  mem:null,
+  async load(){
+    // 1) serveur partage (donnees communes aux 2 utilisateurs)
+    try{
+      const r = await fetch(API_BASE+'/api/data');
+      if(r.status===401){ window.location.href='/login.html'; return null; }
+      if(r.ok){ const d = await r.json(); if(d){ this.mem=d; return d; } }
+    }catch(e){ /* serveur injoignable - fallback local */ }
+    // 2) cache local (hors-ligne / backup)
+    try{ const ls = localStorage.getItem(KEY); if(ls) return JSON.parse(ls); }catch(e){}
+    return null;
+  },
+  async save(d){
+    this.mem = d;
+    // 1) serveur partage
+    try{
+      const r = await fetch(API_BASE+'/api/data', {
+        method:'POST',
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(d)
+      });
+      if(r.status===401){ window.location.href='/login.html'; return; }
+    }catch(e){ /* hors-ligne */ }
+    // 2) cache local
+    try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+  }
+};
+
+const SEED_NAMES = [
+  "ADJAGBA Franck","DEKA-JAMES Jean-Clement","TIANDO Batipa Imelda","GOUN Sedjro Aurel Desnos",
+  "KAHOME M. Elysee","Guillaume KOUKUI","PODANHO Edouard","RONG Huang","YANG Lina","ZHAO Bin Bin",
+  "Chen Huifang"
+];
+const AV_COLORS = ['#1E4C9A','#2C6BBF','#3B5BA5','#1F3A6B','#2A567D','#4F76C9','#0E6E8C','#5B7AA8','#C7A23F','#9C7A2A','#7E611A'];
+
+function splitName(full){
+  const toks = full.trim().split(/\s+/);
+  const fam = toks.filter(t=>t.length>1 && t===t.toUpperCase() && /[A-ZÀ-Ý-]/.test(t));
+  let nom, prenom;
+  if(fam.length){ nom = fam.join(' '); prenom = toks.filter(t=>!fam.includes(t)).join(' '); }
+  else { nom = toks[0]; prenom = toks.slice(1).join(' '); }
+  return {nom, prenom, full};
+}
+function initials(p){
+  const a=(p.nom||'').trim()[0]||''; const b=(p.prenom||'').trim()[0]||'';
+  return (a+b).toUpperCase() || (p.full||'?').slice(0,2).toUpperCase();
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+function seedData(){
+  const staff = SEED_NAMES.map((full,i)=>{
+    const sp = splitName(full);
+    return { id:uid(), nom:sp.nom, prenom:sp.prenom, full, poste:'', departement:'',
+             droitAnnuel:30, report:0, color:AV_COLORS[i%AV_COLORS.length] };
+  });
+  staff.forEach((s,i)=> s.matricule = 'EMP-'+String(i+1).padStart(3,'0'));
+  const yr = new Date().getFullYear();
+  return {
+    version:1,
+    org:'Registre des congés',
+    pays:'benin',
+    orderV2:true, calV2:true,
+    staff,
+    leaves:[],
+    holidays:generateBeninHolidays(yr),
+    year:yr
+  };
+}
+
+let DB = null;
+let TAB = 'dashboard';
+let TL_YEAR = new Date().getFullYear();
+
+/* ============================================================
+   Helpers dates / calculs
+   ============================================================ */
+const MOIS = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+const MOIS_LONG = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+function pd(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtFR(s){ const d=pd(s); if(!d) return '—'; return `${String(d.getDate()).padStart(2,'0')} ${MOIS[d.getMonth()]} ${d.getFullYear()}`; }
+function todayISO(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function isHoliday(iso){ return DB.holidays.some(h=>(h.date||h)===iso); }
+function isoOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function workingDays(startISO,endISO){
+  const a=pd(startISO), b=pd(endISO); if(!a||!b||b<a) return 0;
+  let n=0, cur=new Date(a);
+  while(cur<=b){
+    const wd=cur.getDay();
+    if(wd!==0 && wd!==6 && !isHoliday(isoOf(cur))) n++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return n;
+}
+function dayOfYear(d){ return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000); }
+function calDays(startISO,endISO){ const a=pd(startISO),b=pd(endISO); if(!a||!b||b<a) return 0; return Math.round((b-a)/86400000)+1; }
+function yearLen(y){ return ((y%4===0&&y%100!==0)||y%400===0)?366:365; }
+function normalizeHolidays(arr){ return (arr||[]).map(h=> typeof h==='string'?{date:h,nom:'Jour férié'}:h); }
+
+/* --- Jours fériés : Pâques (Computus grégorien) + fêtes mobiles --- */
+function easter(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+    f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
+    i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+    mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,da);
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+/* Fêtes musulmanes — dates approximatives (à confirmer selon l'observation officielle) */
+const ISLAM_BENIN={
+  2025:{fitr:'2025-03-31',tabaski:'2025-06-07',maouloud:'2025-09-05'},
+  2026:{fitr:'2026-03-20',tabaski:'2026-05-27',maouloud:'2026-08-26'},
+  2027:{fitr:'2027-03-10',tabaski:'2027-05-17',maouloud:'2027-08-15'},
+  2028:{fitr:'2028-02-26',tabaski:'2028-05-05',maouloud:'2028-08-03'}
+};
+function generateBeninHolidays(y){
+  const e=easter(y);
+  const list=[
+    [`${y}-01-01`,"Jour de l'An"],
+    [`${y}-01-10`,'Fête des religions traditionnelles'],
+    [isoOf(addDays(e,1)),'Lundi de Pâques'],
+    [`${y}-05-01`,'Fête du Travail'],
+    [isoOf(addDays(e,39)),'Ascension'],
+    [isoOf(addDays(e,50)),'Lundi de Pentecôte'],
+    [`${y}-08-01`,"Fête de l'Indépendance"],
+    [`${y}-08-15`,'Assomption'],
+    [`${y}-11-01`,'Toussaint'],
+    [`${y}-12-25`,'Noël']
+  ];
+  const isl=ISLAM_BENIN[y];
+  if(isl){ list.push([isl.fitr,'Aïd el-Fitr (Ramadan) ~'],[isl.tabaski,'Tabaski / Aïd el-Kébir ~'],[isl.maouloud,'Maouloud ~']); }
+  return list.map(([date,nom])=>({date,nom})).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function staffById(id){ return DB.staff.find(s=>s.id===id); }
+function takenAdmin(staffId, year){
+  return DB.leaves.filter(l=>l.staffId===staffId && l.type==='administratif' && l.statut==='approuve' && pd(l.debut).getFullYear()===year)
+                  .reduce((s,l)=>s+l.jours,0);
+}
+function takenSick(staffId, year){
+  return DB.leaves.filter(l=>l.staffId===staffId && l.type==='maladie' && l.statut==='approuve' && pd(l.debut).getFullYear()===year)
+                  .reduce((s,l)=>s+l.jours,0);
+}
+function entitlement(s){ return (s.droitAnnuel||0)+(s.report||0); }
+function isOnLeaveToday(staffId){
+  const t=todayISO();
+  return DB.leaves.find(l=>l.staffId===staffId && l.statut==='approuve' && l.debut<=t && l.fin>=t);
+}
+
+/* ============================================================
+   Rendu : navigation
+   ============================================================ */
+const TABS = [
+  {id:'dashboard', label:'Tableau de bord'},
+  {id:'staff', label:'Personnel'},
+  {id:'calendar', label:'Calendrier'},
+  {id:'registry', label:'Registre'},
+  {id:'settings', label:'Paramètres'}
+];
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(t=>
+    `<button class="${t.id===TAB?'active':''}" onclick="go('${t.id}')">${t.label}</button>`).join('');
+}
+function go(t){ TAB=t; renderTabs(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function render(){
+  const m=document.getElementById('main');
+  if(TAB==='dashboard') m.innerHTML=viewDashboard();
+  else if(TAB==='staff') m.innerHTML=viewStaff();
+  else if(TAB==='calendar'){ m.innerHTML=viewCalendar(); }
+  else if(TAB==='registry') m.innerHTML=viewRegistry();
+  else if(TAB==='settings') m.innerHTML=viewSettings();
+}
+
+/* ---------- avatar ---------- */
+function avatar(s, cls=''){ return `<div class="av ${cls}" style="background:${s.color}">${initials(s)}</div>`; }
+function chipType(t){ return t==='maladie'
+  ? '<span class="chip mal">Arrêt maladie</span>'
+  : '<span class="chip adm">Congé administratif</span>'; }
+function statusEl(st){
+  const map={approuve:['ok','Approuvé'],en_attente:['wait','En attente'],refuse:['no','Refusé']};
+  const [c,l]=map[st]||map.en_attente; return `<span class="st ${c}"><span class="dot"></span>${l}</span>`;
+}
+
+/* ============================================================
+   Vue : Tableau de bord
+   ============================================================ */
+function viewDashboard(){
+  const year=DB.year;
+  const onLeave = DB.staff.map(s=>({s,l:isOnLeaveToday(s.id)})).filter(x=>x.l);
+  const pending = DB.leaves.filter(l=>l.statut==='en_attente').sort((a,b)=>a.debut.localeCompare(b.debut));
+  const totalAdmin = DB.staff.reduce((acc,s)=>acc+takenAdmin(s.id,year),0);
+  const t=todayISO();
+  const upcoming = DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t)
+    .sort((a,b)=>a.debut.localeCompare(b.debut)).slice(0,6);
+
+  const kpis=`<div class="kpis">
+    <div class="kpi k-adm"><div class="edge"></div><div class="lab">Effectif suivi</div><div class="num">${DB.staff.length}</div><div class="hint">collaborateurs enregistrés</div></div>
+    <div class="kpi k-mal"><div class="edge"></div><div class="lab">Absents aujourd'hui</div><div class="num">${onLeave.length}</div><div class="hint">${onLeave.length?onLeave.map(x=>x.s.prenom||x.s.full.split(' ')[0]).slice(0,3).join(', ')+(onLeave.length>3?'…':''):'présence complète'}</div></div>
+    <div class="kpi k-wait"><div class="edge"></div><div class="lab">Demandes en attente</div><div class="num">${pending.length}</div><div class="hint">à valider</div></div>
+    <div class="kpi"><div class="edge"></div><div class="lab">Jours pris · ${year}</div><div class="num">${totalAdmin}</div><div class="hint">congés administratifs approuvés</div></div>
+  </div>`;
+
+  const absToday = onLeave.length ? onLeave.map(({s,l})=>`
+    <div class="person">
+      ${avatar(s)}
+      <div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">Retour le ${nextWorkday(l.fin)} · ${chipType(l.type)}</div></div>
+      <div class="p-right">${statusEl(l.statut)}</div>
+    </div>`).join('') : emptyState('check','Tout le monde est présent','Aucune absence enregistrée pour aujourd\'hui.');
+
+  const pendingHTML = pending.length ? pending.slice(0,7).map(l=>{
+    const s=staffById(l.staffId); if(!s) return '';
+    return `<div class="person">
+      ${avatar(s)}
+      <div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} → ${fmtFR(l.fin)} · ${l.jours} j</div></div>
+      <div class="p-right" style="display:flex;gap:6px">
+        <button class="btn sm" onclick="setStatus('${l.id}','approuve')">Approuver</button>
+        <button class="btn sm ghost" onclick="setStatus('${l.id}','refuse')">Refuser</button>
+      </div>
+    </div>`;
+  }).join('') : emptyState('inbox','Aucune demande en attente','Les nouvelles demandes apparaîtront ici.');
+
+  const upcomingHTML = upcoming.length ? upcoming.map(l=>{
+    const s=staffById(l.staffId); if(!s) return '';
+    const inDays=Math.round((pd(l.debut)-pd(todayISO()))/86400000);
+    return `<div class="person">
+      ${avatar(s)}
+      <div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} · dans ${inDays} j</div></div>
+      <div class="p-right">${chipType(l.type)}</div>
+    </div>`;
+  }).join('') : emptyState('calendar','Aucun congé planifié','Les congés à venir s\'afficheront ici.');
+
+  return `<section class="view">
+    <div class="view-head"><div>
+      <h2>Tableau de bord</h2>
+      <p>Vue d'ensemble de la présence et des demandes · année de référence ${year}</p>
+    </div></div>
+    ${kpis}
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-h"><h3>Demandes à valider</h3><span class="tag">${pending.length}</span></div>
+        <div class="panel-b">${pendingHTML}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Absents aujourd'hui</h3><span class="tag">${onLeave.length}</span></div>
+        <div class="panel-b">${absToday}</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="panel-h"><h3>Soldes de congés · ${year}</h3><button class="btn sm ghost" onclick="go('staff')">Tout voir</button></div>
+        <div class="panel-b">${DB.staff.slice().sort((a,b)=>(entitlement(b)-takenAdmin(b.id,year))-(entitlement(a)-takenAdmin(a.id,year))).slice(0,5).map(s=>balanceRow(s,year)).join('')}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Congés à venir</h3><span class="tag">30 jours</span></div>
+        <div class="panel-b">${upcomingHTML}</div>
+      </div>
+    </div>
+  </section>`;
+}
+function nextWorkday(finISO){
+  let d=pd(finISO); d.setDate(d.getDate()+1);
+  while(d.getDay()===0||d.getDay()===6||isHoliday(isoOf(d))) d.setDate(d.getDate()+1);
+  return fmtFR(isoOf(d));
+}
+function balanceRow(s,year){
+  const ent=entitlement(s), used=takenAdmin(s.id,year), left=ent-used;
+  const pct=ent>0?Math.min(100,Math.round(used/ent*100)):0;
+  const cls=left<=2?'crit':left<=6?'warn':'';
+  return `<div class="person" style="cursor:pointer" onclick="openDetail('${s.id}')">
+    ${avatar(s)}
+    <div class="p-main">
+      <div class="p-name">${s.full}</div>
+      <div class="bal"><div class="bal-track"><div class="bal-fill ${cls}" style="width:${pct}%"></div></div>
+      <div class="bal-lab"><span>${used} j pris</span><span><b style="color:var(--ink)">${left}</b> j restants / ${ent}</span></div></div>
+    </div>
+  </div>`;
+}
+function emptyState(icon,title,sub){
+  const ic={check:'<path d="M20 6L9 17l-5-5"/>',inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>',calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'}[icon]||'';
+  return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${ic}</svg><div style="font-weight:600;color:var(--ink-soft)">${title}</div><div style="margin-top:3px">${sub}</div></div>`;
+}
+
+/* ============================================================
+   Vue : Personnel
+   ============================================================ */
+function viewStaff(){
+  const year=DB.year;
+  const cards = DB.staff.map(s=>{
+    const ent=entitlement(s), usedA=takenAdmin(s.id,year), left=ent-usedA, usedS=takenSick(s.id,year);
+    const pct=ent>0?Math.min(100,Math.round(usedA/ent*100)):0;
+    const cls=left<=2?'crit':left<=6?'warn':'';
+    const on=isOnLeaveToday(s.id);
+    return `<div class="scard" onclick="openDetail('${s.id}')">
+      <div class="scard-top">
+        ${avatar(s)}
+        <div class="p-main">
+          <div class="p-name">${s.full}</div>
+          <div class="p-meta">${s.poste||'Poste non défini'}${s.departement?' · '+s.departement:''}</div>
+          <div class="matricule">${s.matricule}</div>
+        </div>
+        ${on?`<span class="chip ${on.type==='maladie'?'mal':'adm'}">Absent</span>`:''}
+      </div>
+      <div class="bal"><div class="bal-track"><div class="bal-fill ${cls}" style="width:${pct}%"></div></div>
+        <div class="bal-lab"><span>Congés administratifs</span><span><b style="color:var(--ink)">${left}</b> / ${ent} j</span></div>
+      </div>
+      <div style="display:flex;gap:18px;margin-top:13px;padding-top:13px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-soft)">
+        <span>Pris&nbsp;: <b style="color:var(--ink)">${usedA} j</b></span>
+        <span><span class="dot" style="background:var(--mal);display:inline-block;margin-right:4px"></span>Maladie&nbsp;: <b style="color:var(--ink)">${usedS} j</b></span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<section class="view">
+    <div class="view-head">
+      <div><h2>Personnel</h2><p>${DB.staff.length} collaborateurs · soldes calculés sur ${year}</p></div>
+      <button class="btn" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+    </div>
+    <div class="staff-grid">${cards}</div>
+  </section>`;
+}
+
+/* ============================================================
+   Vue : Calendrier (timeline annuelle)
+   ============================================================ */
+function viewCalendar(){
+  const y=TL_YEAR, len=yearLen(y);
+  const monthStarts=[]; for(let m=0;m<12;m++) monthStarts.push(dayOfYear(new Date(y,m,1)));
+  const todayPct = (new Date().getFullYear()===y) ? (dayOfYear(new Date())/len*100) : -1;
+
+  const rows = DB.staff.map(s=>{
+    const segs = DB.leaves.filter(l=>l.staffId===s.id && (pd(l.debut).getFullYear()===y || pd(l.fin).getFullYear()===y))
+      .map(l=>{
+        let a=pd(l.debut), b=pd(l.fin);
+        const ys=new Date(y,0,1), ye=new Date(y,11,31);
+        if(a<ys)a=ys; if(b>ye)b=ye;
+        const left=dayOfYear(a)/len*100;
+        const width=Math.max(((dayOfYear(b)-dayOfYear(a)+1)/len*100), .6);
+        const cls=(l.type==='maladie'?'mal':'adm')+(l.statut!=='approuve'?' pend':'');
+        const lbl=l.jours>=12?`${l.jours} j`:'';
+        const title=`${s.full} — ${l.type==='maladie'?'Arrêt maladie':'Congé administratif'}\n${fmtFR(l.debut)} → ${fmtFR(l.fin)} (${l.jours} j calendaires)\nStatut : ${({approuve:'Approuvé',en_attente:'En attente',refuse:'Refusé'})[l.statut]}`;
+        return `<div class="seg ${cls}" style="left:${left}%;width:${width}%" title="${title.replace(/"/g,'&quot;')}" onclick="openDetail('${s.id}')"><small>${lbl}</small></div>`;
+      }).join('');
+    return `<div class="tl-row">
+      <div class="tl-name">${avatar(s)}<span class="nm">${s.full}</span></div>
+      <div class="tl-track">
+        <div class="tl-grid">${Array(12).fill('<div></div>').join('')}</div>
+        ${todayPct>=0?`<div class="tl-today" style="left:${todayPct}%"></div>`:''}
+        ${segs||''}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<section class="view">
+    <div class="view-head"><div><h2>Calendrier annuel</h2><p>Visualisation des périodes d'absence sur l'année</p></div></div>
+    <div class="tl-head">
+      <div class="year-pick">
+        <button onclick="shiftYear(-1)" aria-label="Année précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <span class="yr mono">${y}</span>
+        <button onclick="shiftYear(1)" aria-label="Année suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--adm-bg);border:1px solid var(--adm)"></i> Congé administratif</span>
+        <span><i style="background:var(--mal-bg);border:1px solid var(--mal)"></i> Arrêt maladie</span>
+        <span><i style="background:#fff;border:1px dashed var(--ink-faint)"></i> En attente</span>
+      </div>
+    </div>
+    <div class="tl"><div class="tl-inner">
+      <div class="tl-months">
+        <div class="corner">Collaborateur</div>
+        <div class="mscale">${MOIS.map(m=>`<div class="mscale-c">${m}</div>`).join('')}</div>
+      </div>
+      ${rows || emptyState('calendar','Aucun collaborateur','Ajoutez du personnel pour commencer.')}
+    </div></div>
+  </section>`;
+}
+function shiftYear(d){ TL_YEAR+=d; render(); }
+
+/* ============================================================
+   Vue : Registre
+   ============================================================ */
+let RF = {q:'',staff:'',type:'',statut:''};
+function viewRegistry(){
+  let rows = DB.leaves.slice().sort((a,b)=>b.debut.localeCompare(a.debut));
+  if(RF.staff) rows=rows.filter(l=>l.staffId===RF.staff);
+  if(RF.type) rows=rows.filter(l=>l.type===RF.type);
+  if(RF.statut) rows=rows.filter(l=>l.statut===RF.statut);
+  if(RF.q){ const q=RF.q.toLowerCase(); rows=rows.filter(l=>{const s=staffById(l.staffId);return s&&(s.full.toLowerCase().includes(q)||(l.motif||'').toLowerCase().includes(q));}); }
+
+  const body = rows.length ? rows.map(l=>{
+    const s=staffById(l.staffId); if(!s) return '';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.matricule}</div></div></div></td>
+      <td>${chipType(l.type)}</td>
+      <td class="mono">${fmtFR(l.debut)}</td>
+      <td class="mono">${fmtFR(l.fin)}</td>
+      <td style="font-weight:600">${l.jours} j</td>
+      <td>${statusEl(l.statut)}</td>
+      <td style="color:var(--ink-soft);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.motif||'—'}</td>
+      <td class="actions">
+        <button class="icon-btn" title="Modifier" onclick="openLeaveForm('${l.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="icon-btn del" title="Supprimer" onclick="delLeave('${l.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+      </td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="8">${emptyState('inbox','Aucun enregistrement','Ajustez vos filtres ou enregistrez un nouveau congé.')}</td></tr>`;
+
+  const opts = DB.staff.map(s=>`<option value="${s.id}" ${RF.staff===s.id?'selected':''}>${s.full}</option>`).join('');
+  return `<section class="view">
+    <div class="view-head">
+      <div><h2>Registre des congés</h2><p>${rows.length} enregistrement${rows.length>1?'s':''} · historique complet</p></div>
+      <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exporter (CSV)</button>
+    </div>
+    <div class="toolbar">
+      <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="Rechercher un nom, un motif…" value="${RF.q}" oninput="RF.q=this.value;refreshTable()"></div>
+      <select onchange="RF.staff=this.value;refreshTable()"><option value="">Tout le personnel</option>${opts}</select>
+      <select onchange="RF.type=this.value;refreshTable()"><option value="">Tous les types</option><option value="administratif" ${RF.type==='administratif'?'selected':''}>Congé administratif</option><option value="maladie" ${RF.type==='maladie'?'selected':''}>Arrêt maladie</option></select>
+      <select onchange="RF.statut=this.value;refreshTable()"><option value="">Tous les statuts</option><option value="approuve" ${RF.statut==='approuve'?'selected':''}>Approuvé</option><option value="en_attente" ${RF.statut==='en_attente'?'selected':''}>En attente</option><option value="refuse" ${RF.statut==='refuse'?'selected':''}>Refusé</option></select>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Collaborateur</th><th>Type</th><th>Début</th><th>Fin</th><th>Durée</th><th>Statut</th><th>Motif</th><th></th></tr></thead>
+      <tbody id="regBody">${body}</tbody>
+    </table></div>
+  </section>`;
+}
+function refreshTable(){ render(); }
+
+/* ============================================================
+   Vue : Paramètres
+   ============================================================ */
+function viewSettings(){
+  const staffRows = DB.staff.map(s=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.matricule}</div></div></div></td>
+    <td>${s.poste||'<span style="color:var(--ink-faint)">—</span>'}</td>
+    <td>${s.departement||'<span style="color:var(--ink-faint)">—</span>'}</td>
+    <td style="font-weight:600">${s.droitAnnuel} j</td>
+    <td style="font-weight:600">${s.report} j</td>
+    <td class="actions">
+      <button class="icon-btn" title="Modifier" onclick="openStaffForm('${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="icon-btn del" title="Retirer" onclick="delStaff('${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+    </td>
+  </tr>`).join('');
+
+  const hols = DB.holidays.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(h=>`<div class="pill-day"><span><b style="font-weight:600">${h.nom||'Jour férié'}</b> · <span class="mono">${fmtFR(h.date)}</span></span><button onclick="delHoliday('${h.date}')" title="Supprimer"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`).join('') || '<span style="color:var(--ink-faint);font-size:13px">Aucun jour férié défini.</span>';
+
+  return `<section class="view">
+    <div class="view-head"><div><h2>Paramètres</h2><p>Organisation, droits annuels, jours fériés et sauvegarde</p></div></div>
+
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-h"><h3>Organisation</h3></div>
+      <div class="panel-b" style="padding:18px">
+        <div class="form-grid">
+          <div class="fg"><label>Nom de l'organisation</label><input id="setOrg" value="${(DB.org||'').replace(/"/g,'&quot;')}"></div>
+          <div class="fg"><label>Année de référence <span class="help">(calcul des soldes)</span></label><input id="setYear" type="number" value="${DB.year}"></div>
+        </div>
+        <div style="margin-top:14px"><button class="btn primary" onclick="saveOrg()">Enregistrer</button></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-h"><h3>Personnel &amp; droits annuels</h3><button class="btn sm" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button></div>
+      <div class="tbl-wrap" style="border:none;box-shadow:none;border-radius:0"><table>
+        <thead><tr><th>Collaborateur</th><th>Poste</th><th>Département</th><th>Droit annuel</th><th>Report N-1</th><th></th></tr></thead>
+        <tbody>${staffRows}</tbody>
+      </table></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-h"><h3>Jours fériés &amp; chômés</h3><span class="tag">${DB.holidays.length}</span></div>
+        <div class="panel-b" style="padding:18px">
+          <p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-soft)">Les congés sont décomptés en jours calendaires (week-ends inclus). Les jours fériés ci-dessous servent au calcul de la date de retour et au repérage dans le calendrier.</p>
+          <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+            <select id="holCountry" style="flex:1"><option value="benin">Bénin</option></select>
+            <input type="number" id="holYear" value="${DB.year}" style="width:92px">
+            <button class="btn" onclick="loadCountryHolidays()">Charger</button>
+          </div>
+          <p style="margin:0 0 14px;font-size:11.5px;color:var(--ink-faint)">Les fêtes musulmanes (Aïd, Tabaski, Maouloud, marquées « ~ ») sont approximatives et à confirmer selon l'observation officielle.</p>
+          <div style="display:flex;gap:8px;margin-bottom:14px"><input type="text" id="holName" placeholder="Nom (ex. Pont)" style="flex:1"><input type="date" id="holInput" style="width:160px"><button class="btn" onclick="addHoliday()">Ajouter</button></div>
+          <div class="pills">${hols}</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Sauvegarde des données</h3></div>
+        <div class="panel-b" style="padding:18px">
+          <p style="margin:0 0 14px;font-size:12.5px;color:var(--ink-soft)">Les données sont enregistrées automatiquement. Exportez une copie de sauvegarde ou restaurez un fichier.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" onclick="exportJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exporter (sauvegarde)</button>
+            <button class="btn" onclick="document.getElementById('importFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Restaurer</button>
+            <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+            <button class="btn danger" onclick="resetAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>Réinitialiser</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <div class="panel-h"><h3>Sécurité &amp; accès</h3>${DB.pin?'<span class="tag" style="color:var(--ok);border-color:var(--ok)">Code actif</span>':'<span class="tag">Aucun code</span>'}</div>
+      <div class="panel-b" style="padding:18px">
+        <p style="margin:0 0 6px;font-size:12.5px;color:var(--ink-soft)">Un code d'accès demande un mot de passe à chaque ouverture de l'outil <b>sur cet appareil</b>.</p>
+        <p style="margin:0 0 14px;font-size:11.5px;color:var(--ink-faint)">À noter&nbsp;: il s'agit d'un garde-fou pratique (écran partagé, poste laissé ouvert), pas d'une sécurité forte. Une personne disposant du fichier peut techniquement le contourner. Pour une vraie restriction par utilisateur, voir l'hébergement protégé.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input type="password" id="pinSet" placeholder="${DB.pin?'Nouveau code (4+ car.)':'Définir un code (4+ car.)'}" style="width:200px">
+          <button class="btn primary" onclick="savePin()">${DB.pin?'Modifier le code':'Activer le code'}</button>
+          ${DB.pin?'<button class="btn danger" onclick="removePin()">Désactiver</button>':''}
+        </div>
+      </div>
+    </div>
+  </section>`;
+}
+function openLeaveForm(id){
+  const ed = id ? DB.leaves.find(l=>l.id===id) : null;
+  const opts = DB.staff.map(s=>`<option value="${s.id}" ${ed&&ed.staffId===s.id?'selected':''}>${s.full}</option>`).join('');
+  const isMal = ed?ed.type==='maladie':false;
+  const html=`
+    <div class="modal-h">
+      <div><h3>${ed?'Modifier le congé':'Enregistrer un congé'}</h3><p>La durée est décomptée en jours calendaires (week-ends inclus).</p></div>
+      <button class="x" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="form-grid">
+        <div class="fg full"><label>Collaborateur</label><select id="lf_staff">${opts}</select></div>
+        <div class="fg full"><label>Type d'absence</label>
+          <div class="seg-toggle">
+            <label><input type="radio" name="lf_type" value="administratif" ${!isMal?'checked':''} onchange="lfRecalc()"><span class="swatch" style="background:var(--adm)"></span>Congé administratif</label>
+            <label><input type="radio" name="lf_type" value="maladie" ${isMal?'checked':''} onchange="lfRecalc()"><span class="swatch" style="background:var(--mal)"></span>Arrêt maladie</label>
+          </div>
+        </div>
+        <div class="fg"><label>Date de début</label><input type="date" id="lf_debut" value="${ed?ed.debut:todayISO()}" onchange="lfRecalc()"></div>
+        <div class="fg"><label>Date de fin</label><input type="date" id="lf_fin" value="${ed?ed.fin:todayISO()}" onchange="lfRecalc()"></div>
+        <div class="fg full"><div class="calc-note" id="lf_calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span></span></div></div>
+        <div class="fg"><label>Statut</label><select id="lf_statut">
+          <option value="approuve" ${ed&&ed.statut==='approuve'?'selected':''}>Approuvé</option>
+          <option value="en_attente" ${!ed||ed.statut==='en_attente'?'selected':''}>En attente</option>
+          <option value="refuse" ${ed&&ed.statut==='refuse'?'selected':''}>Refusé</option>
+        </select></div>
+        <div class="fg"><label>Justificatif <span class="help">(arrêt maladie)</span></label><select id="lf_just">
+          <option value="non" ${ed&&ed.justificatif==='oui'?'':'selected'}>Non fourni</option>
+          <option value="oui" ${ed&&ed.justificatif==='oui'?'selected':''}>Fourni</option>
+        </select></div>
+        <div class="fg full"><label>Motif / observations</label><textarea id="lf_motif" rows="2" placeholder="Optionnel">${ed?(ed.motif||''):''}</textarea></div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn primary" onclick="saveLeave('${id||''}')">${ed?'Mettre à jour':'Enregistrer'}</button>
+    </div>`;
+  showModal(html);
+  lfRecalc();
+}
+function lfRecalc(){
+  const d=document.getElementById('lf_debut').value, f=document.getElementById('lf_fin').value;
+  const el=document.querySelector('#lf_calc span');
+  if(!d||!f){ el.textContent='Sélectionnez les dates.'; return; }
+  if(pd(f)<pd(d)){ el.textContent='La date de fin précède la date de début.'; return; }
+  const cal=calDays(d,f), ouv=workingDays(d,f);
+  el.innerHTML=`<b>${cal} jour${cal>1?'s':''} calendaire${cal>1?'s':''}</b> décompté${cal>1?'s':''} (week-ends inclus) &nbsp;·&nbsp; dont ${ouv} ouvré${ouv>1?'s':''}`;
+}
+function saveLeave(id){
+  const staffId=document.getElementById('lf_staff').value;
+  const type=document.querySelector('input[name=lf_type]:checked').value;
+  const debut=document.getElementById('lf_debut').value;
+  const fin=document.getElementById('lf_fin').value;
+  if(!staffId){ toast('Sélectionnez un collaborateur.'); return; }
+  if(!debut||!fin){ toast('Renseignez les deux dates.'); return; }
+  if(pd(fin)<pd(debut)){ toast('La date de fin est invalide.'); return; }
+  const rec={
+    id:id||uid(), staffId, type, debut, fin,
+    jours:calDays(debut,fin),
+    statut:document.getElementById('lf_statut').value,
+    justificatif:document.getElementById('lf_just').value,
+    motif:document.getElementById('lf_motif').value.trim(),
+    cree: id? (DB.leaves.find(l=>l.id===id)||{}).cree || todayISO() : todayISO()
+  };
+  if(id){ const i=DB.leaves.findIndex(l=>l.id===id); DB.leaves[i]=rec; }
+  else DB.leaves.push(rec);
+  persist(); closeModal(); render(); toast(id?'Congé mis à jour':'Congé enregistré');
+}
+function delLeave(id){
+  const l=DB.leaves.find(x=>x.id===id); const s=l&&staffById(l.staffId);
+  if(confirm(`Supprimer cet enregistrement${s?' pour '+s.full:''} ?`)){
+    DB.leaves=DB.leaves.filter(x=>x.id!==id); persist(); render(); toast('Enregistrement supprimé');
+  }
+}
+function setStatus(id,st){ const l=DB.leaves.find(x=>x.id===id); if(l){ l.statut=st; persist(); render(); toast(st==='approuve'?'Demande approuvée':'Demande refusée'); } }
+
+/* ============================================================
+   Modale : détail collaborateur
+   ============================================================ */
+function openDetail(id){
+  const s=staffById(id); if(!s) return;
+  const year=DB.year, ent=entitlement(s), usedA=takenAdmin(id,year), left=ent-usedA, usedS=takenSick(id,year);
+  const hist=DB.leaves.filter(l=>l.staffId===id).sort((a,b)=>b.debut.localeCompare(a.debut));
+  const histHTML = hist.length? hist.map(l=>`<div class="hist-item">
+      <span class="dot" style="background:${l.type==='maladie'?'var(--mal)':'var(--adm)'}"></span>
+      <div style="flex:1"><div style="font-weight:600">${l.type==='maladie'?'Arrêt maladie':'Congé administratif'} · ${l.jours} j</div>
+      <div style="font-size:12px;color:var(--ink-soft)" class="mono">${fmtFR(l.debut)} → ${fmtFR(l.fin)}</div></div>
+      ${statusEl(l.statut)}
+    </div>`).join('') : emptyState('calendar','Aucun congé enregistré','L\'historique apparaîtra ici.');
+  const html=`
+    <div class="modal-h">
+      <div style="display:flex;gap:13px;align-items:center">${avatar(s,'')}<div>
+        <h3>${s.full}</h3><p>${s.matricule}${s.poste?' · '+s.poste:''}${s.departement?' · '+s.departement:''}</p></div></div>
+      <button class="x" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="det-stats">
+        <div class="det-stat"><div class="l">Solde de congés · ${year}</div><div class="v">${left}<small> / ${ent} j</small></div></div>
+        <div class="det-stat"><div class="l">Jours maladie · ${year}</div><div class="v">${usedS}<small> j</small></div></div>
+      </div>
+      <div class="bal" style="margin-bottom:20px"><div class="bal-track"><div class="bal-fill ${left<=2?'crit':left<=6?'warn':''}" style="width:${ent>0?Math.min(100,usedA/ent*100):0}%"></div></div>
+        <div class="bal-lab"><span>${usedA} j de congés administratifs pris</span><span>${ent>0?Math.round(usedA/ent*100):0} %</span></div></div>
+      <h3 style="font-size:14px;margin-bottom:6px">Historique des absences</h3>
+      ${histHTML}
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" onclick="closeModal()">Fermer</button>
+      <button class="btn" onclick="closeModal();openStaffForm('${id}')">Modifier la fiche</button>
+      <button class="btn primary" onclick="closeModal();openLeaveForm()">Nouveau congé</button>
+    </div>`;
+  showModal(html,'wide');
+}
+
+/* ============================================================
+   Modale : fiche collaborateur (ajout / édition)
+   ============================================================ */
+function openStaffForm(id){
+  const s=id?staffById(id):null;
+  const html=`
+    <div class="modal-h">
+      <div><h3>${s?'Modifier la fiche':'Nouveau collaborateur'}</h3><p>Identité, poste et droits à congés annuels.</p></div>
+      <button class="x" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="form-grid">
+        <div class="fg"><label>Nom</label><input id="sf_nom" value="${s?(s.nom||'').replace(/"/g,'&quot;'):''}" placeholder="ADJAGBA"></div>
+        <div class="fg"><label>Prénom(s)</label><input id="sf_prenom" value="${s?(s.prenom||'').replace(/"/g,'&quot;'):''}" placeholder="Franck"></div>
+        <div class="fg"><label>Poste</label><input id="sf_poste" value="${s?(s.poste||'').replace(/"/g,'&quot;'):''}" placeholder="Optionnel"></div>
+        <div class="fg"><label>Département</label><input id="sf_dep" value="${s?(s.departement||'').replace(/"/g,'&quot;'):''}" placeholder="Optionnel"></div>
+        <div class="fg"><label>Droit annuel <span class="help">(jours calendaires)</span></label><input id="sf_droit" type="number" min="0" value="${s?s.droitAnnuel:30}"></div>
+        <div class="fg"><label>Report N-1 <span class="help">(jours)</span></label><input id="sf_report" type="number" min="0" value="${s?s.report:0}"></div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn primary" onclick="saveStaff('${id||''}')">${s?'Mettre à jour':'Ajouter'}</button>
+    </div>`;
+  showModal(html);
+}
+function saveStaff(id){
+  const nom=document.getElementById('sf_nom').value.trim();
+  const prenom=document.getElementById('sf_prenom').value.trim();
+  if(!nom&&!prenom){ toast('Renseignez au moins un nom.'); return; }
+  const data={
+    nom, prenom, full:(nom+' '+prenom).trim(),
+    poste:document.getElementById('sf_poste').value.trim(),
+    departement:document.getElementById('sf_dep').value.trim(),
+    droitAnnuel:Math.max(0,parseInt(document.getElementById('sf_droit').value)||0),
+    report:Math.max(0,parseInt(document.getElementById('sf_report').value)||0)
+  };
+  if(id){ Object.assign(staffById(id),data); }
+  else {
+    const n=DB.staff.length;
+    DB.staff.push({id:uid(),...data,color:AV_COLORS[n%AV_COLORS.length],matricule:'EMP-'+String(n+1).padStart(3,'0')});
+  }
+  persist(); closeModal(); render(); toast(id?'Fiche mise à jour':'Collaborateur ajouté');
+}
+function delStaff(id){
+  const s=staffById(id); const cnt=DB.leaves.filter(l=>l.staffId===id).length;
+  if(confirm(`Retirer ${s.full} ?${cnt?' '+cnt+' enregistrement(s) de congé seront aussi supprimés.':''}`)){
+    DB.staff=DB.staff.filter(x=>x.id!==id);
+    DB.leaves=DB.leaves.filter(l=>l.staffId!==id);
+    persist(); render(); toast('Collaborateur retiré');
+  }
+}
+
+/* ============================================================
+   Paramètres : org, jours fériés, sauvegarde
+   ============================================================ */
+function saveOrg(){
+  DB.org=document.getElementById('setOrg').value.trim()||'Registre des congés';
+  DB.year=parseInt(document.getElementById('setYear').value)||new Date().getFullYear();
+  TL_YEAR=DB.year;
+  document.getElementById('orgName').textContent=DB.org;
+  document.getElementById('seal').textContent=(DB.org[0]||'R').toUpperCase();
+  persist(); render(); toast('Paramètres enregistrés');
+}
+function addHoliday(){
+  const v=document.getElementById('holInput').value;
+  const nom=document.getElementById('holName').value.trim()||'Jour férié';
+  if(!v){ toast('Choisissez une date.'); return; }
+  if(!DB.holidays.some(h=>h.date===v)) DB.holidays.push({date:v,nom});
+  persist(); render(); toast('Jour férié ajouté');
+}
+function delHoliday(d){ DB.holidays=DB.holidays.filter(h=>h.date!==d); persist(); render(); }
+function loadCountryHolidays(){
+  const y=parseInt(document.getElementById('holYear').value)||DB.year;
+  const gen=generateBeninHolidays(y);
+  let added=0;
+  gen.forEach(h=>{ if(!DB.holidays.some(x=>x.date===h.date)){ DB.holidays.push(h); added++; } });
+  persist(); render(); toast(`${added} jour(s) férié(s) ajouté(s) pour ${y}`);
+}
+function resetAll(){
+  if(confirm('Réinitialiser toutes les données ? Le personnel initial sera rechargé et tous les congés seront effacés.')){
+    DB=seedData(); TL_YEAR=DB.year; persist(); applyOrg(); render(); toast('Données réinitialisées');
+  }
+}
+
+/* ---------- exports ---------- */
+function download(name,content,mime){
+  const blob=new Blob([content],{type:mime});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+function exportCSV(){
+  const head=['Matricule','Nom complet','Poste','Departement','Type','Debut','Fin','Jours calendaires','Statut','Justificatif','Motif'];
+  const lines=[head.join(';')];
+  DB.leaves.slice().sort((a,b)=>a.debut.localeCompare(b.debut)).forEach(l=>{
+    const s=staffById(l.staffId)||{};
+    const row=[s.matricule||'',s.full||'',s.poste||'',s.departement||'',
+      l.type==='maladie'?'Arret maladie':'Conge administratif',l.debut,l.fin,l.jours,
+      ({approuve:'Approuve',en_attente:'En attente',refuse:'Refuse'})[l.statut],
+      l.justificatif==='oui'?'Oui':'Non', (l.motif||'').replace(/[;\n\r]/g,' ')];
+    lines.push(row.join(';'));
+  });
+  download(`registre-conges-${DB.year}.csv`,'\uFEFF'+lines.join('\n'),'text/csv;charset=utf-8');
+  toast('Registre exporté (CSV)');
+}
+function exportJSON(){ download(`sauvegarde-conges-${todayISO()}.json`,JSON.stringify(DB,null,2),'application/json'); toast('Sauvegarde exportée'); }
+function importJSON(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result);
+    if(!d.staff||!d.leaves) throw 0;
+    DB=d; DB.holidays=normalizeHolidays(DB.holidays); TL_YEAR=DB.year||new Date().getFullYear();
+    persist(); applyOrg(); render(); toast('Sauvegarde restaurée');
+  }catch(err){ toast('Fichier invalide'); } };
+  r.readAsText(f); e.target.value='';
+}
+
+/* ============================================================
+   Modale + toast + horloge
+   ============================================================ */
+function showModal(html,cls=''){
+  closeModal();
+  const scrim=document.createElement('div'); scrim.className='scrim'; scrim.id='scrim';
+  scrim.innerHTML=`<div class="modal ${cls}">${html}</div>`;
+  scrim.addEventListener('mousedown',e=>{ if(e.target===scrim) closeModal(); });
+  document.body.appendChild(scrim);
+  document.addEventListener('keydown',escClose);
+}
+function closeModal(){ const s=document.getElementById('scrim'); if(s)s.remove(); document.removeEventListener('keydown',escClose); }
+function escClose(e){ if(e.key==='Escape') closeModal(); }
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>${msg}`;
+  t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400);
+}
+function printReport(){
+  const year=DB.year;
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const d=new Date();
+  const today=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const soldes=DB.staff.map(s=>{
+    const ent=entitlement(s),pris=takenAdmin(s.id,year),rest=ent-pris,mal=takenSick(s.id,year);
+    return '<tr><td>'+esc(s.full)+'</td><td style="text-align:center">'+ent+'</td><td style="text-align:center">'+pris+'</td><td style="text-align:center;font-weight:bold">'+rest+'</td><td style="text-align:center">'+mal+'</td></tr>';
+  }).join('');
+  const lignes=DB.leaves.slice().sort((a,b)=>a.debut.localeCompare(b.debut)).map(l=>{
+    const s=staffById(l.staffId)||{};
+    const t=l.type==='maladie'?'Arret maladie':'Conge administratif';
+    const st=({approuve:'Approuve',en_attente:'En attente',refuse:'Refuse'})[l.statut]||'';
+    return '<tr><td>'+esc(s.full)+'</td><td>'+t+'</td><td>'+fmtFR(l.debut)+'</td><td>'+fmtFR(l.fin)+'</td><td style="text-align:center">'+l.jours+'</td><td>'+st+'</td></tr>';
+  }).join('');
+  let area=document.getElementById('printArea'); if(area) area.remove();
+  area=document.createElement('div'); area.id='printArea';
+  const thS='text-align:left;padding:7px 9px;background:#15223E;color:#fff;font-size:12px;border:1px solid #15223E';
+  const tdBase='padding:6px 9px;border:1px solid #ccc;font-size:12px';
+  area.innerHTML=
+    '<div style="font-family:Arial,sans-serif;color:#15223E">'+
+    '<div style="border-bottom:3px solid #C7A23F;padding-bottom:8px;margin-bottom:14px">'+
+    '<div style="font-size:20px;font-weight:bold">'+esc(DB.org||'Registre des conges')+'</div>'+
+    '<div style="font-size:13px;color:#555">Registre des conges - situation au '+today+' (annee '+year+')</div></div>'+
+    '<div style="font-size:14px;font-weight:bold;margin:6px 0 6px;color:#1E4C9A">Soldes par collaborateur</div>'+
+    '<table style="border-collapse:collapse;width:100%;margin-bottom:18px"><thead><tr>'+
+    '<th style="'+thS+'">Collaborateur</th><th style="'+thS+';text-align:center">Droit</th>'+
+    '<th style="'+thS+';text-align:center">Pris</th><th style="'+thS+';text-align:center">Restant</th>'+
+    '<th style="'+thS+';text-align:center">Maladie</th></tr></thead><tbody>'+
+    soldes.replace(/<td>/g,'<td style="'+tdBase+'">').replace(/<td style="text-align:center">/g,'<td style="'+tdBase+';text-align:center">').replace(/<td style="text-align:center;font-weight:bold">/g,'<td style="'+tdBase+';text-align:center;font-weight:bold">')+
+    '</tbody></table>'+
+    '<div style="font-size:14px;font-weight:bold;margin:6px 0 6px;color:#1E4C9A">Detail des absences</div>'+
+    '<table style="border-collapse:collapse;width:100%"><thead><tr>'+
+    '<th style="'+thS+'">Collaborateur</th><th style="'+thS+'">Type</th><th style="'+thS+'">Debut</th>'+
+    '<th style="'+thS+'">Fin</th><th style="'+thS+';text-align:center">Jours</th><th style="'+thS+'">Statut</th></tr></thead><tbody>'+
+    (lignes? lignes.replace(/<td>/g,'<td style="'+tdBase+'">').replace(/<td style="text-align:center">/g,'<td style="'+tdBase+';text-align:center">') : '<tr><td colspan="6" style="'+tdBase+';text-align:center;color:#888">Aucune absence enregistree</td></tr>')+
+    '</tbody></table>'+
+    '<div style="margin-top:16px;font-size:11px;color:#888;font-style:italic">Document de consultation. Droit annuel : 30 jours calendaires (week-ends compris). Pour toute modification, utiliser l application de saisie.</div>'+
+    '</div>';
+  document.body.appendChild(area);
+  window.addEventListener('afterprint',()=>{ if(area) area.remove(); },{once:true});
+  window.print();
+}
+function clock(){
+  const d=new Date();
+  document.getElementById('clockDate').textContent=`${['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'][d.getDay()]} ${d.getDate()} ${MOIS_LONG[d.getMonth()]}`;
+  document.getElementById('clockTime').textContent=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function applyOrg(){
+  document.getElementById('orgName').textContent=DB.org||'Registre des congés';
+  document.getElementById('seal').textContent=((DB.org||'R')[0]||'R').toUpperCase();
+}
+
+/* ============================================================
+   Persistance + init
+   ============================================================ */
+let saveT;
+function persist(){ clearTimeout(saveT); saveT=setTimeout(()=>Store.save(DB),120); }
+
+async function init(){
+  const loaded=await Store.load();
+  DB = loaded || seedData();
+  if(!DB.holidays) DB.holidays=[];
+  DB.holidays = normalizeHolidays(DB.holidays);
+  if(!DB.orderV2){
+    const idx=n=>{ const i=SEED_NAMES.indexOf(n); return i<0?999:i; };
+    DB.staff.sort((a,b)=>idx(a.full)-idx(b.full));
+    DB.staff.forEach((s,i)=> s.matricule='EMP-'+String(i+1).padStart(3,'0'));
+    DB.orderV2=true;
+  }
+  if(!DB.calV2){ DB.leaves.forEach(l=>{ l.jours=calDays(l.debut,l.fin); }); DB.calV2=true; }
+  DB.staff.forEach((s,i)=>{ if(!AV_COLORS.includes(s.color)) s.color=AV_COLORS[i%AV_COLORS.length]; });
+  TL_YEAR = DB.year || new Date().getFullYear();
+  Store.save(DB);
+  if(DB.pin){ showLock(); } else { boot(); }
+}
+function boot(){
+  applyOrg();
+  renderTabs();
+  render();
+  clock(); setInterval(clock,30000);
+}
+function showLock(){
+  const el=document.createElement('div'); el.className='lock'; el.id='lockScreen';
+  el.innerHTML=`<div class="lock-card">
+    <div class="seal" style="width:54px;height:54px;font-size:24px;border-radius:14px"></div>
+    <h2>Accès protégé</h2>
+    <p class="ldesc">Saisissez le code d'accès pour ouvrir le registre.</p>
+    <input id="lockInput" type="password" inputmode="numeric" placeholder="Code d'accès">
+    <div class="lock-err" id="lockErr"></div>
+    <button class="btn primary" style="width:100%;justify-content:center" onclick="tryUnlock()">Déverrouiller</button>
+  </div>`;
+  document.body.appendChild(el);
+  el.querySelector('.seal').textContent=((DB.org||'R')[0]||'R').toUpperCase();
+  const inp=el.querySelector('#lockInput'); inp.focus();
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+}
+function tryUnlock(){
+  const v=document.getElementById('lockInput').value;
+  if(v===DB.pin){ document.getElementById('lockScreen').remove(); boot(); }
+  else{ document.getElementById('lockErr').textContent='Code incorrect.'; const i=document.getElementById('lockInput'); i.value=''; i.focus(); }
+}
+function savePin(){
+  const v=document.getElementById('pinSet').value.trim();
+  if(v.length<4){ toast('Code trop court (4 caractères minimum).'); return; }
+  DB.pin=v; persist(); render(); toast('Code d\'accès enregistré');
+}
+function removePin(){
+  if(confirm('Désactiver le code d\'accès ? L\'ouverture ne sera plus protégée.')){
+    DB.pin=null; persist(); render(); toast('Code d\'accès désactivé');
+  }
+}
+init();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
