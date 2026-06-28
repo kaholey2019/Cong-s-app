@@ -270,6 +270,18 @@
       "justificatif": "oui",
       "motif": "",
       "cree": "2026-06-28"
+    },
+    {
+      "id": "mqxu94qfs8qbu",
+      "staffId": "mqxrgcjbvc1qo",
+      "type": "maladie",
+      "debut": "2026-06-22",
+      "fin": "2026-06-29",
+      "jours": 8,
+      "statut": "approuve",
+      "justificatif": "non",
+      "motif": "",
+      "cree": "2026-06-28"
     }
   ],
   "holidays": [
