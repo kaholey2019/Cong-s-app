@@ -1,18 +1,13 @@
 {
   "name": "conges-app-server",
   "version": "1.0.0",
-  "description": "Registre des congés — serveur partagé avec authentification",
-  "main": "server.js",
+  "description": "Registre des conges partage",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node api/server.js"
   },
   "dependencies": {
     "express": "^4.21.0",
     "express-session": "^1.18.0",
     "dotenv": "^16.4.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
