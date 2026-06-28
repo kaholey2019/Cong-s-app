@@ -4,27 +4,27 @@ const path = require('path');
 
 const app = express();
 
-// Utilisateurs
-const USERS = {};
-USERS[process.env.USER1_USERNAME || 'admin']   = process.env.USER1_PASSWORD   || 'admin123';
-USERS[process.env.USER2_USERNAME || 'user']    = process.env.USER2_PASSWORD   || 'user123';
+// ─── Utilisateurs (mots de passe par défaut) ───
+const USERS = {
+  'admin': 'admin123',
+  'user': 'user123'
+};
 
-// Token GitHub + infos du depot
+// Token GitHub pour le stockage des donnees
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
-const GITHUB_OWNER = process.env.GITHUB_OWNER || 'kaholey2019';
-const GITHUB_REPO  = process.env.GITHUB_REPO  || 'Cong-s-app';
+const GITHUB_OWNER = 'kaholey2019';
+const GITHUB_REPO  = 'Cong-s-app';
 const DATA_PATH    = 'data/data.json';
 const GITHUB_API   = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_PATH}`;
 
 app.use(express.json({ limit: '20mb' }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'changer-cette-cle',
+  secret: process.env.SESSION_SECRET || 'secret-par-defaut-conges-2026',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: true, maxAge: 24*60*60*1000, httpOnly: true, sameSite: 'lax' }
 }));
 
-// Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 function requireAuth(req, res, next) {
@@ -32,31 +32,35 @@ function requireAuth(req, res, next) {
   return res.status(401).json({ error: 'Non authentifie' });
 }
 
-// --- Stockage via GitHub API ---
+// ─── Stockage via GitHub API ───
 async function readData() {
   if (!GITHUB_TOKEN) return null;
-  const res = await fetch(GITHUB_API, {
-    headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'conges-app' }
-  });
-  if (!res.ok) return null;
-  const json = await res.json();
-  const content = Buffer.from(json.content, 'base64').toString('utf-8');
-  return { data: JSON.parse(content), sha: json.sha };
+  try {
+    const res = await fetch(GITHUB_API, {
+      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'conges-app' }
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    const content = Buffer.from(json.content, 'base64').toString('utf-8');
+    return { data: JSON.parse(content), sha: json.sha };
+  } catch { return null; }
 }
 
 async function writeData(data, sha) {
   if (!GITHUB_TOKEN) return false;
-  const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  const body = { message: 'Mise a jour donnees conges', content, sha };
-  const res = await fetch(GITHUB_API, {
-    method: 'PUT',
-    headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'conges-app' },
-    body: JSON.stringify(body)
-  });
-  return res.ok;
+  try {
+    const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+    const body = { message: 'Mise a jour donnees conges', content, sha };
+    const res = await fetch(GITHUB_API, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'conges-app' },
+      body: JSON.stringify(body)
+    });
+    return res.ok;
+  } catch { return false; }
 }
 
-// --- API Routes ---
+// ─── API Routes ───
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: 'Identifiants requis' });
@@ -102,5 +106,4 @@ app.get('/', (req, res) => {
   }
 });
 
-// Export for Vercel
 module.exports = app;
