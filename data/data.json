@@ -222,6 +222,18 @@
       "justificatif": "oui",
       "motif": "A perdu sa mère",
       "cree": "2026-06-28"
+    },
+    {
+      "id": "mqxt6d0ayouby",
+      "staffId": "mqxrgcjbxs9vv",
+      "type": "administratif",
+      "debut": "2026-07-07",
+      "fin": "2026-08-05",
+      "jours": 30,
+      "statut": "approuve",
+      "justificatif": "oui",
+      "motif": "",
+      "cree": "2026-06-28"
     }
   ],
   "holidays": [
