@@ -1,16 +1,9 @@
 const express = require('express');
-const session = require('express-session');
 const path = require('path');
 
 const app = express();
 
-// ─── Utilisateurs (mots de passe par défaut) ───
-const USERS = {
-  'admin': 'admin123',
-  'user': 'user123'
-};
-
-// Token GitHub pour le stockage des donnees
+// Token GitHub
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITHUB_OWNER = 'kaholey2019';
 const GITHUB_REPO  = 'Cong-s-app';
@@ -18,19 +11,7 @@ const DATA_PATH    = 'data/data.json';
 const GITHUB_API   = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_PATH}`;
 
 app.use(express.json({ limit: '20mb' }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret-par-defaut-conges-2026',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: true, maxAge: 24*60*60*1000, httpOnly: true, sameSite: 'lax' }
-}));
-
 app.use(express.static(path.join(__dirname, '..', 'public')));
-
-function requireAuth(req, res, next) {
-  if (req.session && req.session.user) return next();
-  return res.status(401).json({ error: 'Non authentifie' });
-}
 
 // ─── Stockage via GitHub API ───
 async function readData() {
@@ -60,26 +41,8 @@ async function writeData(data, sha) {
   } catch { return false; }
 }
 
-// ─── API Routes ───
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: 'Identifiants requis' });
-  if (USERS[username] && USERS[username] === password) {
-    req.session.user = username;
-    return res.json({ success: true, user: username });
-  }
-  return res.status(401).json({ error: 'Identifiants incorrects' });
-});
-
-app.post('/api/logout', requireAuth, (req, res) => {
-  req.session.destroy(() => res.json({ success: true }));
-});
-
-app.get('/api/session', requireAuth, (req, res) => {
-  res.json({ authenticated: true, user: req.session.user });
-});
-
-app.get('/api/data', requireAuth, async (_req, res) => {
+// ─── API Routes (sans authentification) ───
+app.get('/api/data', async (_req, res) => {
   try {
     const result = await readData();
     return res.json(result ? result.data : null);
@@ -88,7 +51,7 @@ app.get('/api/data', requireAuth, async (_req, res) => {
   }
 });
 
-app.post('/api/data', requireAuth, async (req, res) => {
+app.post('/api/data', async (req, res) => {
   try {
     const current = await readData();
     await writeData(req.body, current ? current.sha : null);
@@ -98,12 +61,9 @@ app.post('/api/data', requireAuth, async (req, res) => {
   }
 });
 
+// Servir l'index directement (plus de login)
 app.get('/', (req, res) => {
-  if (req.session && req.session.user) {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-  } else {
-    res.redirect('/login.html');
-  }
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 module.exports = app;

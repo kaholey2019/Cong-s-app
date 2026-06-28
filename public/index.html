@@ -328,7 +328,7 @@ const Store = {
     // 1) serveur partage (donnees communes aux 2 utilisateurs)
     try{
       const r = await fetch(API_BASE+'/api/data');
-      if(r.status===401){ window.location.href='/login.html'; return null; }
+      
       if(r.ok){ const d = await r.json(); if(d){ this.mem=d; return d; } }
     }catch(e){ /* serveur injoignable - fallback local */ }
     // 2) cache local (hors-ligne / backup)
@@ -344,7 +344,7 @@ const Store = {
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(d)
       });
-      if(r.status===401){ window.location.href='/login.html'; return; }
+      
     }catch(e){ /* hors-ligne */ }
     // 2) cache local
     try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
@@ -1155,7 +1155,7 @@ async function init(){
   DB.staff.forEach((s,i)=>{ if(!AV_COLORS.includes(s.color)) s.color=AV_COLORS[i%AV_COLORS.length]; });
   TL_YEAR = DB.year || new Date().getFullYear();
   Store.save(DB);
-  if(DB.pin){ showLock(); } else { boot(); }
+  boot()
 }
 function boot(){
   applyOrg();
