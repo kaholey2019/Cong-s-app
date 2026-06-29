@@ -456,6 +456,30 @@ function generateBeninHolidays(y){
   return list.map(([date,nom])=>({date,nom})).sort((a,b)=>a.date.localeCompare(b.date));
 }
 
+
+/* --- Jours feries de la Chine --- */
+const CHINA_LUNAR={
+  2025:{cny:'2025-01-29',dragon:'2025-05-31',mid:'2025-10-06'},
+  2026:{cny:'2026-02-17',dragon:'2026-06-05',mid:'2026-09-25'},
+  2027:{cny:'2027-02-06',dragon:'2027-06-09',mid:'2027-09-15'},
+  2028:{cny:'2028-01-26',dragon:'2028-05-28',mid:'2028-10-03'}
+};
+function generateChinaHolidays(y){
+  const list=[
+    [`${y}-01-01`,'元旦 (Nouvel An)'],
+    [`${y}-04-05`,'清明节 (Qingming)'],
+    [`${y}-05-01`,'劳动节 (Fete du Travail)'],
+    [`${y}-10-01`,'国庆节 (Fete nationale)']
+  ];
+  const lu=CHINA_LUNAR[y];
+  if(lu){
+    list.push([lu.cny,'春节 (Nouvel An chinois) ~']);
+    list.push([lu.dragon,'端午节 (Fete des bateaux-dragons) ~']);
+    list.push([lu.mid,'中秋节 (Fete de la mi-automne) ~']);
+  }
+  return list.map(([date,nom])=>({date,nom})).sort((a,b)=>a.date.localeCompare(b.date));
+}
+
 function staffById(id){ return DB.staff.find(s=>s.id===id); }
 function takenAdmin(staffId, year){
   return DB.leaves.filter(l=>l.staffId===staffId && l.type==='administratif' && l.statut==='approuve' && pd(l.debut).getFullYear()===year)
@@ -794,7 +818,7 @@ function viewSettings(){
         <div class="panel-b" style="padding:18px">
           <p style="margin:0 0 12px;font-size:12.5px;color:var(--ink-soft)">Les congés sont décomptés en jours calendaires (week-ends inclus). Les jours fériés ci-dessous servent au calcul de la date de retour et au repérage dans le calendrier.</p>
           <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-            <select id="holCountry" style="flex:1"><option value="benin">Bénin</option></select>
+            <select id="holCountry" style="flex:1"><option value="benin">Bénin</option><option value="china">Chine</option></select>
             <input type="number" id="holYear" value="${DB.year}" style="width:92px">
             <button class="btn" onclick="loadCountryHolidays()">Charger</button>
           </div>
@@ -1015,14 +1039,16 @@ function addHoliday(){
   if(!DB.holidays.some(h=>h.date===v)) DB.holidays.push({date:v,nom});
   persist(); render(); toast('Jour férié ajouté');
 }
-function delHoliday(d){ DB.holidays=DB.holidays.filter(h=>h.date!==d); persist(); render(); }
+
 function loadCountryHolidays(){
   const y=parseInt(document.getElementById('holYear').value)||DB.year;
-  const gen=generateBeninHolidays(y);
+  const country=document.getElementById('holCountry').value;
+  const gen=country==='china' ? generateChinaHolidays(y) : generateBeninHolidays(y);
   let added=0;
   gen.forEach(h=>{ if(!DB.holidays.some(x=>x.date===h.date)){ DB.holidays.push(h); added++; } });
-  persist(); render(); toast(`${added} jour(s) férié(s) ajouté(s) pour ${y}`);
+  persist(); render(); toast(`${added} jour(s) ferie(s) ajoute(s) pour ${y}`);
 }
+
 function resetAll(){
   if(confirm('Réinitialiser toutes les données ? Le personnel initial sera rechargé et tous les congés seront effacés.')){
     DB=seedData(); TL_YEAR=DB.year; persist(); applyOrg(); render(); toast('Données réinitialisées');
