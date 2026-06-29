@@ -1,9 +1,6 @@
 const express = require('express');
-const path = require('path');
-
 const app = express();
 
-// Token GitHub
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || '';
 const GITHUB_OWNER = 'kaholey2019';
 const GITHUB_REPO  = 'Cong-s-app';
@@ -11,9 +8,7 @@ const DATA_PATH    = 'data/data.json';
 const GITHUB_API   = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_PATH}`;
 
 app.use(express.json({ limit: '20mb' }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// ─── Stockage via GitHub API ───
 async function readData() {
   if (!GITHUB_TOKEN) return null;
   try {
@@ -41,12 +36,11 @@ async function writeData(data, sha) {
   } catch { return false; }
 }
 
-// ─── API Routes (sans authentification) ───
 app.get('/api/data', async (_req, res) => {
   try {
     const result = await readData();
     return res.json(result ? result.data : null);
-  } catch (e) {
+  } catch {
     return res.status(500).json({ error: 'Erreur de lecture' });
   }
 });
@@ -56,14 +50,9 @@ app.post('/api/data', async (req, res) => {
     const current = await readData();
     await writeData(req.body, current ? current.sha : null);
     return res.json({ success: true });
-  } catch (e) {
+  } catch {
     return res.status(500).json({ error: "Erreur d'ecriture" });
   }
-});
-
-// Servir l'index directement (plus de login)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 module.exports = app;
