@@ -294,6 +294,18 @@
       "justificatif": "oui",
       "motif": "",
       "cree": "2026-06-30"
+    },
+    {
+      "id": "mr09o3tyv22fl",
+      "staffId": "mqxrgcjbb32k1",
+      "type": "administratif",
+      "debut": "2026-02-02",
+      "fin": "2026-02-19",
+      "jours": 18,
+      "statut": "approuve",
+      "justificatif": "oui",
+      "motif": "Au titre de l'année 2024",
+      "cree": "2026-06-30"
     }
   ],
   "holidays": [
