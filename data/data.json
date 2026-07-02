@@ -61,7 +61,7 @@
       "poste": "SP",
       "departement": "",
       "droitAnnuel": 30,
-      "report": 0,
+      "report": 120,
       "color": "#2A567D",
       "matricule": "EMP-005"
     },
@@ -146,7 +146,7 @@
       "debut": "2026-08-17",
       "fin": "2026-10-15",
       "jours": 60,
-      "statut": "approuve",
+      "statut": "en_attente",
       "justificatif": "oui",
       "motif": "",
       "cree": "2026-06-28"
