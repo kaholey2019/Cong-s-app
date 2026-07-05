@@ -290,7 +290,7 @@
       "debut": "2026-10-01",
       "fin": "2026-10-30",
       "jours": 30,
-      "statut": "en_attente",
+      "statut": "approuve",
       "justificatif": "oui",
       "motif": "",
       "cree": "2026-06-30"
