@@ -4,11 +4,15 @@ Cette application permet à **2 personnes** de consulter et remplir un même reg
 
 ## Fonctionnalités
 
-- Authentification par identifiant/mot de passe pour 2 utilisateurs
 - Données partagées en temps réel (les modifications d'un utilisateur sont visibles par l'autre)
 - Cache local hors-ligne (consulte les dernières données même sans connexion)
 - Application installable sur mobile et ordinateur (PWA)
-- Export CSV et sauvegarde JSON
+- Tableau de bord avec statistiques, soldes restants et alertes de dépassement
+- Notifications : demandes en attente et congés à venir (cloche + rappels navigateur)
+- Export CSV, Excel et PDF + sauvegarde JSON
+- Gestion du personnel : ajout, modification, suppression, recherche et filtre par service
+- Registre filtrable par collaborateur, service, année, type et statut
+- Synchronisation automatique avec indicateur « Enregistré / Synchronisation / Hors ligne »
 
 ## Déploiement rapide (gratuit) sur Render.com
 

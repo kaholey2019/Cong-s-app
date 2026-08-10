@@ -18,28 +18,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#DCE6F4;
+    --bg:#EDF2F0;
     --surface:#FFFFFF;
-    --surface-2:#F2F6FC;
-    --ink:#15223E;
-    --ink-soft:#566083;
-    --ink-faint:#8993AD;
-    --line:#E0E6F1;
-    --line-strong:#CAD3E6;
-    --accent:#1E4C9A;          /* bleu roi — actions principales */
-    --accent-ink:#16387A;
-    --accent-soft:#E8EFFB;
-    --gold:#C7A23F;            /* or — signature */
-    --gold-soft:#F5EDD6;
-    --gold-ink:#7E611A;
+    --surface-2:#F3F7F5;
+    --ink:#1B2B33;
+    --ink-soft:#5A6B73;
+    --ink-faint:#8FA0A7;
+    --line:#DFE8E4;
+    --line-strong:#C7D6D0;
+    --accent:#0E7666;
+    --accent-ink:#0A5C50;
+    --accent-soft:#E2F0EC;
+    --gold:#C99A2E;
+    --gold-soft:#F7EDD4;
+    --gold-ink:#755A15;
     /* type de congé */
-    --adm:#1E4C9A; --adm-bg:#E8EFFB; --adm-ink:#16387A;     /* bleu */
-    --mal:#9C7A2A; --mal-bg:#F4EAD2; --mal-ink:#6B5012;     /* bronze doré */
+    --adm:#0E7666; --adm-bg:#E2F0EC; --adm-ink:#0A5C50;
+    --mal:#B26A2A; --mal-bg:#F5E7D4; --mal-ink:#7C4715;
     /* statuts */
-    --ok:#1F8A4C; --wait:#B5740B; --no:#C9342E;
+    --ok:#2F8A5B; --wait:#C07B16; --no:#D0483E;
     --radius:14px; --radius-sm:9px;
-    --shadow:0 1px 2px rgba(21,35,63,.05),0 8px 24px -12px rgba(21,35,63,.18);
-    --shadow-lg:0 24px 60px -20px rgba(21,35,63,.35);
+    --shadow:0 1px 2px rgba(27,43,51,.05),0 8px 24px -12px rgba(27,43,51,.18);
+    --shadow-lg:0 24px 60px -20px rgba(27,43,51,.35);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -56,7 +56,7 @@
   /* ---------- Layout ---------- */
   .app{max-width:1240px;margin:0 auto;padding:0 22px 80px}
   header.top{
-    position:sticky;top:0;z-index:40;background:rgba(220,230,244,.85);
+    position:sticky;top:0;z-index:40;background:rgba(237,242,240,.86);
     backdrop-filter:saturate(140%) blur(10px);
     border-bottom:1px solid var(--line);margin:0 -22px 0;padding:0 22px;
   }
@@ -71,6 +71,24 @@
   .brand h1{font-size:18px;line-height:1.1}
   .brand .sub{font-size:11.5px;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
   .top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .sync{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-soft);padding:7px 10px;border:1px solid var(--line);border-radius:20px;background:var(--surface);white-space:nowrap}
+  .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;transition:background .2s}
+  .sync.offline .sync-dot{background:var(--no)}
+  .sync.syncing .sync-dot{background:var(--wait);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .bell{position:relative;border:1px solid var(--line-strong);background:var(--surface);border-radius:10px;width:40px;height:40px;display:grid;place-items:center;color:var(--ink-soft);cursor:pointer;transition:all .14s}
+  .bell:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+  .bell svg{width:18px;height:18px}
+  .badge{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:20px;background:var(--no);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--surface)}
+  .bell-panel{position:absolute;top:calc(100% + 8px);right:0;width:340px;max-width:calc(100vw - 44px);background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;box-shadow:var(--shadow-lg);overflow:hidden;z-index:60;animation:pop .2s cubic-bezier(.2,.8,.2,1)}
+  .bell-panel .bp-head{padding:13px 16px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .bell-panel .bp-body{max-height:330px;overflow-y:auto;padding:6px 0}
+  .bell-panel .bp-item{display:flex;gap:10px;align-items:flex-start;padding:10px 16px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .bell-panel .bp-item:last-child{border-bottom:none}
+  .bell-panel .bp-item:hover{background:var(--surface-2)}
+  .bell-panel .bp-item b{display:block;font-size:13px;margin-bottom:2px}
+  .bell-panel .bp-item small{color:var(--ink-soft)}
+  .bell-panel .bp-empty{text-align:center;color:var(--ink-faint);padding:22px 12px;font-size:13px}
   .clock{text-align:right;font-size:12px;color:var(--ink-soft);line-height:1.35}
   .clock b{display:block;color:var(--ink);font-size:13px;font-weight:600;text-transform:capitalize}
 
@@ -154,6 +172,25 @@
   .scard-top .av{width:44px;height:44px;font-size:15px;border-radius:11px}
   .scard-top .p-name{font-size:15px}
   .matricule{font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-faint)}
+
+  /* ---------- Alertes & statistiques ---------- */
+  .alert-list{display:flex;flex-direction:column;gap:9px}
+  .alert-item{display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--wait);border-radius:9px;padding:10px 12px;font-size:12.5px}
+  .alert-item.crit{border-left-color:var(--no);background:#FBF1F0}
+  .alert-item.ok{border-left-color:var(--ok)}
+  .alert-item b{display:block;font-size:13px;margin-bottom:1px}
+  .alert-item small{color:var(--ink-soft)}
+  .alert-item svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--wait)}
+  .alert-item.crit svg{color:var(--no)}
+  .alert-item.ok svg{color:var(--ok)}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .stat-box{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 13px}
+  .stat-box .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:600}
+  .stat-box .v{font-family:'Spectral';font-size:23px;font-weight:600;margin-top:4px}
+  .stat-box .v small{font-family:'Inter';font-size:12px;color:var(--ink-faint);font-weight:500}
+  .filter-pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent);border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:600}
+  .filter-pill button{border:none;background:none;color:inherit;cursor:pointer;padding:0;display:grid;place-items:center}
+  .filter-pill svg{width:11px;height:11px}
 
   /* ---------- Table ---------- */
   .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -298,6 +335,14 @@
       </div>
     </div>
     <div class="top-actions">
+      <div class="sync" id="syncState" title="État de la sauvegarde"><span class="sync-dot" id="syncDot"></span><span id="syncText">Enregistré</span></div>
+      <div style="position:relative">
+        <button class="bell" id="bellBtn" onclick="toggleBell()" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="badge" id="bellBadge" style="display:none">0</span>
+        </button>
+        <div class="bell-panel" id="bellPanel" style="display:none"></div>
+      </div>
       <div class="clock"><b id="clockDate"></b><span id="clockTime"></span></div>
       <button class="btn ghost" onclick="printReport()" title="Vue imprimable / PDF">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
@@ -324,32 +369,160 @@ const KEY = 'lms_data_v1';
 const API_BASE = '';
 const Store = {
   mem:null,
+  queue:[],
+  syncing:false,
+  online:true,
+  lastSync:null,
+  retryT:null,
+  onStatus:null,
   async load(){
     // 1) serveur partage (donnees communes aux 2 utilisateurs)
     try{
       const r = await fetch(API_BASE+'/api/data');
-      
-      if(r.ok){ const d = await r.json(); if(d){ this.mem=d; return d; } }
+      if(r.ok){
+        const d = await r.json();
+        if(d){
+          this.mem=d; this.online=true; this.lastSync=Date.now();
+          this.setStatus('ok');
+          try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+          return d;
+        }
+      }
     }catch(e){ /* serveur injoignable - fallback local */ }
     // 2) cache local (hors-ligne / backup)
-    try{ const ls = localStorage.getItem(KEY); if(ls) return JSON.parse(ls); }catch(e){}
+    try{
+      const ls = localStorage.getItem(KEY);
+      if(ls){
+        this.mem=JSON.parse(ls);
+        this.online=false;
+        this.setStatus('offline');
+        return this.mem;
+      }
+    }catch(e){}
     return null;
   },
   async save(d){
     this.mem = d;
-    // 1) serveur partage
-    try{
-      const r = await fetch(API_BASE+'/api/data', {
-        method:'POST',
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(d)
-      });
-      
-    }catch(e){ /* hors-ligne */ }
-    // 2) cache local
+    // 1) cache local immediat
     try{ localStorage.setItem(KEY, JSON.stringify(d)); }catch(e){}
+    // 2) file d'attente vers le serveur partage
+    this.queue.push(d);
+    if(this.queue.length>3) this.queue.shift();
+    this.sync();
+  },
+  async sync(){
+    if(this.syncing) return;
+    this.syncing=true;
+    this.setStatus('syncing');
+    while(this.queue.length){
+      const d=this.queue[this.queue.length-1];
+      try{
+        const r=await fetch(API_BASE+'/api/data', {
+          method:'POST',
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(d)
+        });
+        if(r.ok){
+          this.queue=[]; this.online=true; this.lastSync=Date.now();
+          this.setStatus('ok');
+        } else {
+          throw new Error('sync-fail');
+        }
+      }catch(e){
+        this.online=false;
+        this.setStatus('offline');
+        clearTimeout(this.retryT);
+        this.retryT=setTimeout(()=>{ this.syncing=false; this.sync(); }, 8000);
+        return;
+      }
+    }
+    this.syncing=false;
+  },
+  setStatus(st){
+    if(this.onStatus) this.onStatus(st);
+  },
+  getStatus(){
+    if(!this.online) return 'offline';
+    if(this.syncing || this.queue.length) return 'syncing';
+    return 'ok';
   }
 };
+function setSyncUI(st){
+  const el=document.getElementById('syncState');
+  const dot=document.getElementById('syncDot');
+  const tx=document.getElementById('syncText');
+  if(!el||!dot||!tx) return;
+  el.classList.remove('offline','syncing');
+  if(st==='offline'){ el.classList.add('offline'); tx.textContent='Hors ligne'; dot.title='Données en attente de synchronisation'; }
+  else if(st==='syncing'){ el.classList.add('syncing'); tx.textContent='Synchronisation…'; dot.title='Sauvegarde en cours'; }
+  else { tx.textContent='Enregistré'; dot.title='Données à jour'; }
+}
+function toggleBell(){
+  const p=document.getElementById('bellPanel');
+  const b=document.getElementById('bellBtn');
+  if(!p) return;
+  const show=p.style.display==='none';
+  if(show){
+    renderBell();
+    p.style.display='block';
+    b.style.color='var(--accent)';
+    b.style.borderColor='var(--accent)';
+  } else {
+    p.style.display='none';
+    b.style.color='';
+    b.style.borderColor='';
+  }
+}
+function closeBell(){
+  const p=document.getElementById('bellPanel');
+  const b=document.getElementById('bellBtn');
+  if(p) p.style.display='none';
+  if(b){ b.style.color=''; b.style.borderColor=''; }
+}
+function renderBell(){
+  const p=document.getElementById('bellPanel');
+  const b=document.getElementById('bellBadge');
+  if(!p) return;
+  const t=todayISO();
+  const pending=DB.leaves.filter(l=>l.statut==='en_attente');
+  const upcoming=DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t && pd(l.debut)-pd(t)<=7*86400000);
+  const alerts=DB.staff.filter(s=>entitlement(s)-takenAdmin(s.id,DB.year)<=0);
+  const count=pending.length+upcoming.length+alerts.length;
+  if(b){
+    b.style.display=count?'grid':'none';
+    b.textContent=count>9?'9+':count;
+  }
+  const items=[];
+  pending.forEach(l=>{
+    const s=staffById(l.staffId); if(!s) return;
+    items.push(`<div class="bp-item"><span class="dot" style="background:var(--wait);margin-top:5px"></span><div style="flex:1"><b>Demande à valider</b><small>${s.full} · ${fmtFR(l.debut)} → ${fmtFR(l.fin)}</small></div><button class="btn sm" onclick="closeBell();setStatus('${l.id}','approuve')">Valider</button></div>`);
+  });
+  upcoming.slice(0,5).forEach(l=>{
+    const s=staffById(l.staffId); if(!s) return;
+    items.push(`<div class="bp-item"><span class="dot" style="background:var(--adm);margin-top:5px"></span><div style="flex:1"><b>Congé dans 7 jours</b><small>${s.full} · ${fmtFR(l.debut)}</small></div>${chipType(l.type)}</div>`);
+  });
+  alerts.forEach(s=>{
+    items.push(`<div class="bp-item"><span class="dot" style="background:var(--no);margin-top:5px"></span><div style="flex:1"><b>Solde épuisé</b><small>${s.full} · ${entitlement(s)-takenAdmin(s.id,DB.year)} j restants</small></div></div>`);
+  });
+  p.innerHTML=`<div class="bp-head"><span>Notifications</span><span class="tag">${count}</span></div><div class="bp-body">${items.length?items.join(''):'<div class="bp-empty">Aucune alerte pour le moment</div>'}</div>`;
+}
+function updateBellBadge(){
+  if(!DB) return;
+  const t=todayISO();
+  const pending=DB.leaves.filter(l=>l.statut==='en_attente').length;
+  const upcoming=DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t && pd(l.debut)-pd(t)<=7*86400000).length;
+  const alerts=DB.staff.filter(s=>entitlement(s)-takenAdmin(s.id,DB.year)<=0).length;
+  const count=pending+upcoming+alerts;
+  const b=document.getElementById('bellBadge');
+  if(b){ b.style.display=count?'grid':'none'; b.textContent=count>9?'9+':count; }
+}
+document.addEventListener('click',e=>{
+  const p=document.getElementById('bellPanel');
+  if(p && p.style.display!=='none' && !e.target.closest('.bell') && !e.target.closest('.bell-panel')) closeBell();
+});
+/* ============================================================
+   Fin persistance
+   ============================================================ */
 
 const SEED_NAMES = [
   "ADJAGBA Franck","DEKA-JAMES Jean-Clement","TIANDO Batipa Imelda","GOUN Sedjro Aurel Desnos",
@@ -518,6 +691,7 @@ function render(){
   else if(TAB==='calendar'){ m.innerHTML=viewCalendar(); }
   else if(TAB==='registry') m.innerHTML=viewRegistry();
   else if(TAB==='settings') m.innerHTML=viewSettings();
+  updateBellBadge();
 }
 
 /* ---------- avatar ---------- */
@@ -538,15 +712,36 @@ function viewDashboard(){
   const onLeave = DB.staff.map(s=>({s,l:isOnLeaveToday(s.id)})).filter(x=>x.l);
   const pending = DB.leaves.filter(l=>l.statut==='en_attente').sort((a,b)=>a.debut.localeCompare(b.debut));
   const totalAdmin = DB.staff.reduce((acc,s)=>acc+takenAdmin(s.id,year),0);
+  const totalSick = DB.staff.reduce((acc,s)=>acc+takenSick(s.id,year),0);
+  const totalLeft = DB.staff.reduce((acc,s)=>acc+Math.max(0,entitlement(s)-takenAdmin(s.id,year)),0);
   const t=todayISO();
   const upcoming = DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t)
-    .sort((a,b)=>a.debut.localeCompare(b.debut)).slice(0,6);
+    .sort((a,b)=>a.debut.localeCompare(b.debut));
+  const soon = upcoming.filter(l=>pd(l.debut)-pd(t)<=30*86400000).slice(0,6);
+  const alerts=[];
+  DB.staff.forEach(s=>{
+    const left=entitlement(s)-takenAdmin(s.id,year);
+    if(left<0) alerts.push({cls:'crit',title:`Solde dépassé pour ${s.full}`,text:`${-left} j au-delà de son droit annuel.`});
+    else if(left<=2) alerts.push({cls:'',title:`Solde faible pour ${s.full}`,text:`Plus que ${left} j de congé restants.`});
+  });
+  pending.forEach(l=>{
+    if(pd(l.debut)-pd(t)<=3*86400000) alerts.push({cls:'',title:`Demande urgente : ${(staffById(l.staffId)||{}).full||'?'}`,text:`Début ${fmtFR(l.debut)} · en attente de validation.`});
+  });
+  soon.forEach(l=>{
+    const s=staffById(l.staffId); if(!s) return;
+    const d=Math.round((pd(l.debut)-pd(t))/86400000);
+    if(d<=7) alerts.push({cls:'',title:`Départ dans ${d} j : ${s.full}`,text:`${fmtFR(l.debut)} → ${fmtFR(l.fin)} (${l.jours} j).`});
+  });
+  alerts.sort((a,b)=>(a.cls==='crit'?-1:0)-(b.cls==='crit'?-1:0));
+  const alertsHTML = alerts.length ? alerts.slice(0,8).map(a=>`
+    <div class="alert-item ${a.cls}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg><div style="flex:1"><b>${a.title}</b><small>${a.text}</small></div></div>`).join('')
+    : `<div class="alert-item ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><div style="flex:1"><b>Tout est sous contrôle</b><small>Aucune alerte de solde ou de planning.</small></div></div>`;
 
   const kpis=`<div class="kpis">
     <div class="kpi k-adm"><div class="edge"></div><div class="lab">Effectif suivi</div><div class="num">${DB.staff.length}</div><div class="hint">collaborateurs enregistrés</div></div>
     <div class="kpi k-mal"><div class="edge"></div><div class="lab">Absents aujourd'hui</div><div class="num">${onLeave.length}</div><div class="hint">${onLeave.length?onLeave.map(x=>x.s.prenom||x.s.full.split(' ')[0]).slice(0,3).join(', ')+(onLeave.length>3?'…':''):'présence complète'}</div></div>
-    <div class="kpi k-wait"><div class="edge"></div><div class="lab">Demandes en attente</div><div class="num">${pending.length}</div><div class="hint">à valider</div></div>
-    <div class="kpi"><div class="edge"></div><div class="lab">Jours pris · ${year}</div><div class="num">${totalAdmin}</div><div class="hint">congés administratifs approuvés</div></div>
+    <div class="kpi k-wait"><div class="edge"></div><div class="lab">Demandes en attente</div><div class="num">${pending.length}</div><div class="hint">${pending.length?pending.slice(0,3).map(l=>(staffById(l.staffId)||{}).full||'').filter(Boolean).join(', '):'rien à valider'}</div></div>
+    <div class="kpi"><div class="edge"></div><div class="lab">Jours restants · ${year}</div><div class="num">${totalLeft}</div><div class="hint">sur l'ensemble des droits annuels</div></div>
   </div>`;
 
   const absToday = onLeave.length ? onLeave.map(({s,l})=>`
@@ -568,9 +763,9 @@ function viewDashboard(){
     </div>`;
   }).join('') : emptyState('inbox','Aucune demande en attente','Les nouvelles demandes apparaîtront ici.');
 
-  const upcomingHTML = upcoming.length ? upcoming.map(l=>{
+  const upcomingHTML = soon.length ? soon.map(l=>{
     const s=staffById(l.staffId); if(!s) return '';
-    const inDays=Math.round((pd(l.debut)-pd(todayISO()))/86400000);
+    const inDays=Math.round((pd(l.debut)-pd(t))/86400000);
     return `<div class="person">
       ${avatar(s)}
       <div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} · dans ${inDays} j</div></div>
@@ -581,9 +776,13 @@ function viewDashboard(){
   return `<section class="view">
     <div class="view-head"><div>
       <h2>Tableau de bord</h2>
-      <p>Vue d'ensemble de la présence et des demandes · année de référence ${year}</p>
+      <p>Vue d'ensemble de la présence, des demandes et des alertes · année de référence ${year}</p>
     </div></div>
     ${kpis}
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-h"><h3>Alertes</h3><span class="tag">${alerts.length}</span></div>
+      <div class="panel-b"><div class="alert-list">${alertsHTML}</div></div>
+    </div>
     <div class="grid2">
       <div class="panel">
         <div class="panel-h"><h3>Demandes à valider</h3><span class="tag">${pending.length}</span></div>
@@ -600,9 +799,14 @@ function viewDashboard(){
         <div class="panel-b">${DB.staff.slice().sort((a,b)=>(entitlement(b)-takenAdmin(b.id,year))-(entitlement(a)-takenAdmin(a.id,year))).slice(0,5).map(s=>balanceRow(s,year)).join('')}</div>
       </div>
       <div class="panel">
-        <div class="panel-h"><h3>Congés à venir</h3><span class="tag">30 jours</span></div>
+        <div class="panel-h"><h3>Congés à venir · 30 jours</h3><span class="tag">${soon.length}</span></div>
         <div class="panel-b">${upcomingHTML}</div>
       </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="l">Congés administratifs pris</div><div class="v">${totalAdmin}<small> j</small></div></div>
+      <div class="stat-box"><div class="l">Arrêts maladie · ${year}</div><div class="v">${totalSick}<small> j</small></div></div>
+      <div class="stat-box"><div class="l">Jours restants par personne</div><div class="v">${DB.staff.length?Math.round(totalLeft/DB.staff.length*10)/10:0}<small> j en moyenne</small></div></div>
     </div>
   </section>`;
 }
@@ -632,9 +836,13 @@ function emptyState(icon,title,sub){
 /* ============================================================
    Vue : Personnel
    ============================================================ */
+let SF = {q:'',dep:''};
 function viewStaff(){
   const year=DB.year;
-  const cards = DB.staff.map(s=>{
+  let list = DB.staff.slice();
+  if(SF.dep) list=list.filter(s=>s.departement===SF.dep);
+  if(SF.q){ const q=SF.q.toLowerCase(); list=list.filter(s=>(s.full+' '+(s.poste||'')+' '+(s.departement||'')).toLowerCase().includes(q)); }
+  const cards = list.map(s=>{
     const ent=entitlement(s), usedA=takenAdmin(s.id,year), left=ent-usedA, usedS=takenSick(s.id,year);
     const pct=ent>0?Math.min(100,Math.round(usedA/ent*100)):0;
     const cls=left<=2?'crit':left<=6?'warn':'';
@@ -658,12 +866,20 @@ function viewStaff(){
       </div>
     </div>`;
   }).join('');
+  const deps=[...new Set(DB.staff.map(s=>s.departement).filter(Boolean))].sort();
+  const depOpts=deps.map(d=>`<option value="${d}" ${SF.dep===d?'selected':''}>${d}</option>`).join('');
   return `<section class="view">
     <div class="view-head">
-      <div><h2>Personnel</h2><p>${DB.staff.length} collaborateurs · soldes calculés sur ${year}</p></div>
+      <div><h2>Personnel</h2><p>${list.length} collaborateur${list.length>1?'s':''} sur ${DB.staff.length} · soldes calculés sur ${year}</p></div>
       <button class="btn" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
     </div>
-    <div class="staff-grid">${cards}</div>
+    <div class="toolbar">
+      <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" placeholder="Rechercher un collaborateur…" value="${SF.q}" oninput="SF.q=this.value;render()"></div>
+      <select onchange="SF.dep=this.value;render()"><option value="">Tous les services</option>${depOpts}</select>
+      ${SF.q||SF.dep?`<span class="filter-pill">${SF.dep||SF.q}<button onclick="SF.q='';SF.dep='';render()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button></span>`:''}
+    </div>
+    <div class="staff-grid">${cards||emptyState('inbox','Aucun collaborateur','Ajustez vos filtres ou ajoutez une fiche.')}</div>
   </section>`;
 }
 
@@ -726,18 +942,20 @@ function shiftYear(d){ TL_YEAR+=d; render(); }
 /* ============================================================
    Vue : Registre
    ============================================================ */
-let RF = {q:'',staff:'',type:'',statut:''};
+let RF = {q:'',staff:'',type:'',statut:'',year:'',dep:''};
 function viewRegistry(){
   let rows = DB.leaves.slice().sort((a,b)=>b.debut.localeCompare(a.debut));
   if(RF.staff) rows=rows.filter(l=>l.staffId===RF.staff);
   if(RF.type) rows=rows.filter(l=>l.type===RF.type);
   if(RF.statut) rows=rows.filter(l=>l.statut===RF.statut);
+  if(RF.year) rows=rows.filter(l=>pd(l.debut) && String(pd(l.debut).getFullYear())===RF.year);
+  if(RF.dep){ const ids=new Set(DB.staff.filter(s=>s.departement===RF.dep).map(s=>s.id)); rows=rows.filter(l=>ids.has(l.staffId)); }
   if(RF.q){ const q=RF.q.toLowerCase(); rows=rows.filter(l=>{const s=staffById(l.staffId);return s&&(s.full.toLowerCase().includes(q)||(l.motif||'').toLowerCase().includes(q));}); }
 
   const body = rows.length ? rows.map(l=>{
     const s=staffById(l.staffId); if(!s) return '';
     return `<tr>
-      <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.matricule}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.departement?s.departement+' · ':''}${s.matricule}</div></div></div></td>
       <td>${chipType(l.type)}</td>
       <td class="mono">${fmtFR(l.debut)}</td>
       <td class="mono">${fmtFR(l.fin)}</td>
@@ -752,17 +970,28 @@ function viewRegistry(){
   }).join('') : `<tr><td colspan="8">${emptyState('inbox','Aucun enregistrement','Ajustez vos filtres ou enregistrez un nouveau congé.')}</td></tr>`;
 
   const opts = DB.staff.map(s=>`<option value="${s.id}" ${RF.staff===s.id?'selected':''}>${s.full}</option>`).join('');
+  const deps = [...new Set(DB.staff.map(s=>s.departement).filter(Boolean))].sort();
+  const depOpts = deps.map(d=>`<option value="${d}" ${RF.dep===d?'selected':''}>${d}</option>`).join('');
+  const years = [...new Set(DB.leaves.map(l=>pd(l.debut)&&pd(l.debut).getFullYear()).filter(Boolean))].sort((a,b)=>b-a);
+  const yearOpts = years.map(y=>`<option value="${y}" ${RF.year===String(y)?'selected':''}>${y}</option>`).join('');
   return `<section class="view">
     <div class="view-head">
       <div><h2>Registre des congés</h2><p>${rows.length} enregistrement${rows.length>1?'s':''} · historique complet</p></div>
-      <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exporter (CSV)</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>CSV</button>
+        <button class="btn" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M10 11l4 8M14 11l-4 8"/></svg>Excel</button>
+        <button class="btn" onclick="exportJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Sauvegarde</button>
+      </div>
     </div>
     <div class="toolbar">
       <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
         <input type="text" placeholder="Rechercher un nom, un motif…" value="${RF.q}" oninput="RF.q=this.value;refreshTable()"></div>
       <select onchange="RF.staff=this.value;refreshTable()"><option value="">Tout le personnel</option>${opts}</select>
+      <select onchange="RF.dep=this.value;refreshTable()"><option value="">Tous les services</option>${depOpts}</select>
+      <select onchange="RF.year=this.value;refreshTable()"><option value="">Toutes les années</option>${yearOpts}</select>
       <select onchange="RF.type=this.value;refreshTable()"><option value="">Tous les types</option><option value="administratif" ${RF.type==='administratif'?'selected':''}>Congé administratif</option><option value="maladie" ${RF.type==='maladie'?'selected':''}>Arrêt maladie</option></select>
       <select onchange="RF.statut=this.value;refreshTable()"><option value="">Tous les statuts</option><option value="approuve" ${RF.statut==='approuve'?'selected':''}>Approuvé</option><option value="en_attente" ${RF.statut==='en_attente'?'selected':''}>En attente</option><option value="refuse" ${RF.statut==='refuse'?'selected':''}>Refusé</option></select>
+      ${RF.dep||RF.year?`<span class="filter-pill">${RF.dep?RF.dep:''}${RF.year?' '+RF.year:''}<button onclick="RF.dep='';RF.year='';refreshTable()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button></span>`:''}
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>Collaborateur</th><th>Type</th><th>Début</th><th>Fin</th><th>Durée</th><th>Statut</th><th>Motif</th><th></th></tr></thead>
@@ -833,6 +1062,8 @@ function viewSettings(){
           <p style="margin:0 0 14px;font-size:12.5px;color:var(--ink-soft)">Les données sont enregistrées automatiquement. Exportez une copie de sauvegarde ou restaurez un fichier.</p>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn" onclick="exportJSON()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Exporter (sauvegarde)</button>
+            <button class="btn" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M10 11l4 8M14 11l-4 8"/></svg>Exporter (Excel)</button>
+            <button class="btn" onclick="printReport()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>Exporter (PDF)</button>
             <button class="btn" onclick="document.getElementById('importFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Restaurer</button>
             <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)">
             <button class="btn danger" onclick="resetAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><path d="M10 11v6M14 11v6"/></svg>Réinitialiser</button>
@@ -850,6 +1081,16 @@ function viewSettings(){
           <input type="password" id="pinSet" placeholder="${DB.pin?'Nouveau code (4+ car.)':'Définir un code (4+ car.)'}" style="width:200px">
           <button class="btn primary" onclick="savePin()">${DB.pin?'Modifier le code':'Activer le code'}</button>
           ${DB.pin?'<button class="btn danger" onclick="removePin()">Désactiver</button>':''}
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <div class="panel-h"><h3>Notifications &amp; rappels</h3><span class="tag">${('Notification' in window && Notification.permission==='granted')?'Actives':'Inactives'}</span></div>
+      <div class="panel-b" style="padding:18px">
+        <p style="margin:0 0 14px;font-size:12.5px;color:var(--ink-soft)">Recevez un rappel navigateur lorsqu'une demande est en attente ou qu'un congé approuvé approche.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn primary" onclick="enableBrowserNotifications()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>${('Notification' in window && Notification.permission==='granted')?'Notifications déjà activées':'Activer les notifications'}</button>
         </div>
       </div>
     </div>
@@ -1007,8 +1248,13 @@ function saveStaff(id){
   };
   if(id){ Object.assign(staffById(id),data); }
   else {
+    if(DB.staff.some(x=>x.full.toLowerCase()===data.full.toLowerCase())){
+      toast('Ce collaborateur existe déjà.'); return;
+    }
+    const nums=DB.staff.map(s=>parseInt((s.matricule||'').replace(/\D/g,''),10)).filter(n=>!isNaN(n));
+    const next=(nums.length?Math.max(...nums):0)+1;
     const n=DB.staff.length;
-    DB.staff.push({id:uid(),...data,color:AV_COLORS[n%AV_COLORS.length],matricule:'EMP-'+String(n+1).padStart(3,'0')});
+    DB.staff.push({id:uid(),...data,color:AV_COLORS[n%AV_COLORS.length],matricule:'EMP-'+String(next).padStart(3,'0')});
   }
   persist(); closeModal(); render(); toast(id?'Fiche mise à jour':'Collaborateur ajouté');
 }
@@ -1077,6 +1323,27 @@ function exportCSV(){
   toast('Registre exporté (CSV)');
 }
 function exportJSON(){ download(`sauvegarde-conges-${todayISO()}.json`,JSON.stringify(DB,null,2),'application/json'); toast('Sauvegarde exportée'); }
+function exportExcel(){
+  const year=DB.year;
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const balanceRows=DB.staff.map(s=>{
+    const ent=entitlement(s), pris=takenAdmin(s.id,year), rest=ent-pris, mal=takenSick(s.id,year);
+    return `<tr><td>${esc(s.matricule)}</td><td>${esc(s.full)}</td><td>${esc(s.departement||'')}</td><td>${ent}</td><td>${pris}</td><td>${rest}</td><td>${mal}</td></tr>`;
+  }).join('');
+  const leaveRows=DB.leaves.slice().sort((a,b)=>a.debut.localeCompare(b.debut)).map(l=>{
+    const s=staffById(l.staffId)||{};
+    const st=({approuve:'Approuvé',en_attente:'En attente',refuse:'Refusé'})[l.statut]||'';
+    return `<tr><td>${esc(s.matricule||'')}</td><td>${esc(s.full||'')}</td><td>${esc(s.departement||'')}</td><td>${l.type==='maladie'?'Arrêt maladie':'Congé administratif'}</td><td>${l.debut}</td><td>${l.fin}</td><td>${l.jours}</td><td>${st}</td><td>${esc(l.justificatif==='oui'?'Oui':'Non')}</td><td>${esc(l.motif||'')}</td></tr>`;
+  }).join('');
+  const html=`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>
+    <h3>${esc(DB.org||'Registre des congés')} — Soldes ${year}</h3>
+    <table border="1"><tr><th>Matricule</th><th>Collaborateur</th><th>Département</th><th>Droit</th><th>Pris</th><th>Restant</th><th>Maladie</th></tr>${balanceRows}</table>
+    <br><h3>Détail des absences</h3>
+    <table border="1"><tr><th>Matricule</th><th>Collaborateur</th><th>Département</th><th>Type</th><th>Début</th><th>Fin</th><th>Jours</th><th>Statut</th><th>Justificatif</th><th>Motif</th></tr>${leaveRows||'<tr><td colspan="10">Aucune absence</td></tr>'}</table>
+    </body></html>`;
+  download(`registre-conges-${year}.xls`,html,'application/vnd.ms-excel;charset=utf-8');
+  toast('Registre exporté (Excel)');
+}
 function importJSON(e){
   const f=e.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -1150,6 +1417,23 @@ function printReport(){
   window.addEventListener('afterprint',()=>{ if(area) area.remove(); },{once:true});
   window.print();
 }
+function enableBrowserNotifications(){
+  if(!('Notification' in window)){ toast('Notifications non supportées par ce navigateur'); return; }
+  Notification.requestPermission().then(p=>{
+    toast(p==='granted'?'Notifications activées':'Notifications non activées');
+    if(TAB==='settings') render();
+  });
+}
+function maybeNotify(){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const t=todayISO();
+  const pending=DB.leaves.filter(l=>l.statut==='en_attente');
+  const soon=DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t && pd(l.debut)-pd(t)<=3*86400000);
+  const msg=[];
+  if(pending.length) msg.push(`${pending.length} demande(s) de congé à valider`);
+  if(soon.length) msg.push(`${soon.length} congé(s) débutent dans moins de 3 jours`);
+  if(msg.length) new Notification('Registre des congés',{body:msg.join(' · ')});
+}
 function clock(){
   const d=new Date();
   document.getElementById('clockDate').textContent=`${['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'][d.getDay()]} ${d.getDate()} ${MOIS_LONG[d.getMonth()]}`;
@@ -1167,7 +1451,9 @@ let saveT;
 function persist(){ clearTimeout(saveT); saveT=setTimeout(()=>Store.save(DB),120); }
 
 async function init(){
+  Store.onStatus=setSyncUI;
   const loaded=await Store.load();
+  setSyncUI(Store.getStatus());
   DB = loaded || seedData();
   if(!DB.holidays) DB.holidays=[];
   DB.holidays = normalizeHolidays(DB.holidays);
@@ -1187,6 +1473,8 @@ function boot(){
   applyOrg();
   renderTabs();
   render();
+  updateBellBadge();
+  maybeNotify();
   clock(); setInterval(clock,30000);
 }
 function showLock(){
