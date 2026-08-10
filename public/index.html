@@ -58,13 +58,11 @@
   .layout{display:flex;min-height:100vh}
   .sidebar{
     width:248px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;
-    background:rgba(255,255,255,.72);
-    backdrop-filter:blur(24px) saturate(180%);
-    -webkit-backdrop-filter:blur(24px) saturate(180%);
-    color:var(--ink);padding:24px 16px 18px;display:flex;flex-direction:column;
-    border-right:1px solid rgba(0,0,0,.08);
+    background:linear-gradient(180deg,#14213D 0%,#1B2C54 62%,#203563 100%);
+    color:#fff;padding:24px 16px 18px;display:flex;flex-direction:column;
+    box-shadow:8px 0 28px -22px rgba(20,33,61,.6);
   }
-  .side-brand{display:flex;align-items:center;gap:13px;padding:0 6px 20px;border-bottom:1px solid var(--line)}
+  .side-brand{display:flex;align-items:center;gap:13px;padding:0 6px 20px;border-bottom:1px solid rgba(255,255,255,.14)}
   .seal{
     width:44px;height:44px;border-radius:12px;flex:none;
     background:linear-gradient(150deg,#E3C66F,#B8922E 55%,#8F6C1D);
@@ -72,8 +70,8 @@
     font-weight:700;font-size:19px;
     box-shadow:0 1px 2px rgba(122,93,20,.22),inset 0 0 0 1px rgba(255,255,255,.5),inset 0 1px 0 rgba(255,255,255,.55)
   }
-  .side-brand h1{font-size:16px;line-height:1.2;color:var(--ink)}
-  .side-brand .sub{font-size:10px;color:var(--ink-faint);letter-spacing:0;text-transform:uppercase;margin-top:3px}
+  .side-brand h1{font-size:16px;line-height:1.2;color:#fff}
+  .side-brand .sub{font-size:10px;color:#B9C7E0;letter-spacing:0;text-transform:uppercase;margin-top:3px}
   .content{flex:1;min-width:0;display:flex;flex-direction:column}
   .topbar{
     position:sticky;top:0;z-index:40;
@@ -87,8 +85,8 @@
   .topbar-title{min-width:0}
   .topbar-kicker{font-size:10.5px;font-weight:600;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0}
   #pageTitle{font-size:19px;line-height:1.15;margin-top:1px}
-  .side-foot{margin-top:auto;border-top:1px solid var(--line);padding:14px 6px 0}
-  .side-version{font-size:11px;color:var(--ink-faint);line-height:1.4}
+  .side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.14);padding:14px 6px 0}
+  .side-version{font-size:11px;color:#93A5C8;line-height:1.4}
   .top-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
   .sync{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-soft);padding:7px 10px;border:1px solid var(--line);border-radius:20px;background:var(--surface);white-space:nowrap}
   .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none;transition:background .2s}
@@ -114,13 +112,15 @@
   nav.tabs{display:flex;flex-direction:column;gap:4px;padding:20px 0}
   nav.tabs button{
     background:none;border:none;border-radius:9px;padding:10px 12px;font-size:13px;font-weight:500;
-    color:var(--ink-soft);display:flex;align-items:center;gap:10px;text-align:left;width:100%;white-space:nowrap;
+    color:#B9C7E0;display:flex;align-items:center;gap:10px;text-align:left;width:100%;white-space:nowrap;
     transition:background .15s,color .15s
   }
-  nav.tabs button:hover{background:rgba(0,0,0,.05);color:var(--ink)}
+  nav.tabs button:hover{background:rgba(255,255,255,.08);color:#fff}
   nav.tabs button.active{
-    background:var(--accent-soft);color:var(--accent);font-weight:600
+    background:linear-gradient(180deg,#2A63C0,#1B4A93);color:#fff;font-weight:600;
+    box-shadow:0 6px 16px -10px rgba(20,33,61,.8);position:relative
   }
+  nav.tabs button.active::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background:linear-gradient(180deg,#E3C66F,#B8922E)}
   nav.tabs svg{width:16px;height:16px;flex:none;opacity:.85}
 
   .btn{
