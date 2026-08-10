@@ -205,7 +205,7 @@
   .alert-item svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--wait)}
   .alert-item.crit svg{color:var(--no)}
   .alert-item.ok svg{color:var(--ok)}
-  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
   .stat-box{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 13px}
   .stat-box .l{font-size:10.5px;text-transform:uppercase;letter-spacing:0;color:var(--ink-soft);font-weight:600}
   .stat-box .v{font-family:'Spectral';font-size:23px;font-weight:600;margin-top:4px}
@@ -225,6 +225,15 @@
   .dept-fill{height:100%;background:linear-gradient(90deg,#0A84FF,#2A63C0);border-radius:6px;min-width:3px}
   .dept-num{width:30px;text-align:right;font-weight:600;color:var(--ink)}
   .stat-box .v{font-family:'Inter',sans-serif}
+  .week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .week-day{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;min-height:88px;display:flex;flex-direction:column;gap:5px;align-items:center}
+  .week-day.today{background:var(--accent-soft);border-color:var(--accent)}
+  .week-day .wd{font-size:10px;color:var(--ink-faint);font-weight:600;text-transform:uppercase}
+  .week-day b{font-size:15px;font-weight:700}
+  .week-day .dots{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:auto}
+  .week-day .dots i{width:9px;height:9px;border-radius:50%;flex:none}
+  .week-day .dots i.mal{background:var(--mal)} .week-day .dots i.adm{background:var(--adm)}
+  .week-day .free{font-size:9.5px;color:var(--ink-faint);margin-top:auto}
 
   /* ---------- Table ---------- */
   .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -358,6 +367,8 @@
     .top-actions{margin-left:0;width:100%;justify-content:flex-end}
     .app{padding:20px 16px 80px}
     .kpis{grid-template-columns:1fr 1fr}
+    .stat-grid{grid-template-columns:1fr 1fr}
+    .week-strip{grid-template-columns:repeat(7,minmax(52px,1fr));overflow-x:auto}
     .grid2{grid-template-columns:1fr}
     .form-grid{grid-template-columns:1fr}
     .clock{display:none}
@@ -779,6 +790,7 @@ function viewDashboard(){
   const totalAdmin = DB.staff.reduce((acc,s)=>acc+takenAdmin(s.id,year),0);
   const totalSick = DB.staff.reduce((acc,s)=>acc+takenSick(s.id,year),0);
   const totalLeft = DB.staff.reduce((acc,s)=>acc+Math.max(0,entitlement(s)-takenAdmin(s.id,year)),0);
+  const totalEnt = DB.staff.reduce((acc,s)=>acc+entitlement(s),0);
   const t=todayISO();
   const upcoming = DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t)
     .sort((a,b)=>a.debut.localeCompare(b.debut));
@@ -796,6 +808,13 @@ function viewDashboard(){
   const returnsHTML=returns.length?returns.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">Retour le ${fmtFR(l.fin)}</div></div><div class="p-right">${chipType(l.type)}</div></div>`;}).join(''):emptyState('check','Aucun retour sous 7 jours','Les retours à venir apparaîtront ici.');
   const recent=DB.leaves.slice().sort((a,b)=>(b.cree||b.debut).localeCompare(a.cree||a.debut)).slice(0,5);
   const recentHTML=recent.length?recent.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} → ${fmtFR(l.fin)}</div></div><div class="p-right">${statusEl(l.statut)}</div></div>`;}).join(''):emptyState('inbox','Aucune saisie récente','Les derniers enregistrements apparaîtront ici.');
+  const weekDays=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(pd(t)); d.setDate(d.getDate()+i); const iso=isoOf(d);
+    const people=DB.leaves.filter(l=>l.statut==='approuve' && l.debut<=iso && l.fin>=iso).map(l=>({type:l.type,id:l.staffId}));
+    weekDays.push({iso,day:d.getDate(),name:MOIS[d.getMonth()].slice(0,3),people});
+  }
+  const weekHTML=`<div class="week-strip">${weekDays.map(d=>`<div class="week-day ${d.iso===t?'today':''}"><span class="wd">${d.name}</span><b>${d.day}</b>${d.people.length?`<div class="dots">${d.people.map(p=>`<i class="${p.type==='maladie'?'mal':'adm'}" title="${(staffById(p.id)||{}).full||''}"></i>`).join('')}</div>`:'<span class="free">Libre</span>'}</div>`).join('')}</div>`;
   const alerts=[];
   DB.staff.forEach(s=>{
     const left=entitlement(s)-takenAdmin(s.id,year);
@@ -861,6 +880,10 @@ function viewDashboard(){
       <div class="panel-h"><h3>Alertes</h3><span class="tag">${alerts.length}</span></div>
       <div class="panel-b"><div class="alert-list">${alertsHTML}</div></div>
     </div>
+    <div class="panel" style="margin-bottom:18px">
+      <div class="panel-h"><h3>Présence cette semaine</h3><span class="tag">7 jours</span></div>
+      <div class="panel-b">${weekHTML}</div>
+    </div>
     <div class="grid2">
       <div class="panel">
         <div class="panel-h"><h3>Demandes à valider</h3><span class="tag">${pending.length}</span></div>
@@ -905,6 +928,7 @@ function viewDashboard(){
       <div class="stat-box"><div class="l">Congés administratifs pris</div><div class="v">${totalAdmin}<small> j</small></div></div>
       <div class="stat-box"><div class="l">Arrêts maladie · ${year}</div><div class="v">${totalSick}<small> j</small></div></div>
       <div class="stat-box"><div class="l">Jours restants par personne</div><div class="v">${DB.staff.length?Math.round(totalLeft/DB.staff.length*10)/10:0}<small> j en moyenne</small></div></div>
+      <div class="stat-box"><div class="l">Taux d'utilisation des droits</div><div class="v">${totalEnt?Math.round(totalAdmin/totalEnt*100):0}<small> %</small></div></div>
     </div>
   </section>`;
 }
