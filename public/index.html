@@ -774,6 +774,7 @@ function isOnLeaveToday(staffId){
    ============================================================ */
 const TABS = [
   {id:'dashboard', label:'Tableau de bord', kicker:'Accueil', icon:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'},
+  {id:'stats', label:'Statistiques', kicker:'Analyse', icon:'<path d="M18 20V10M12 20V4M6 20v-6"/>'},
   {id:'staff', label:'Personnel', kicker:'Équipe', icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>'},
   {id:'calendar', label:'Calendrier', kicker:'Planning', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'},
   {id:'registry', label:'Registre', kicker:'Historique', icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>'},
@@ -794,6 +795,7 @@ function go(t){
 function render(){
   const m=document.getElementById('main');
   if(TAB==='dashboard') m.innerHTML=viewDashboard();
+  else if(TAB==='stats') m.innerHTML=viewStats();
   else if(TAB==='staff') m.innerHTML=viewStaff();
   else if(TAB==='calendar'){ m.innerHTML=viewCalendar(); }
   else if(TAB==='registry') m.innerHTML=viewRegistry();
@@ -821,24 +823,10 @@ function viewDashboard(){
   const totalAdmin = DB.staff.reduce((acc,s)=>acc+takenAdmin(s.id,year),0);
   const totalSick = DB.staff.reduce((acc,s)=>acc+takenSick(s.id,year),0);
   const totalLeft = DB.staff.reduce((acc,s)=>acc+Math.max(0,entitlement(s)-takenAdmin(s.id,year)),0);
-  const totalEnt = DB.staff.reduce((acc,s)=>acc+entitlement(s),0);
   const t=todayISO();
   const upcoming = DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t)
     .sort((a,b)=>a.debut.localeCompare(b.debut));
   const soon = upcoming.filter(l=>pd(l.debut)-pd(t)<=30*86400000).slice(0,6);
-  const monthCounts=Array(12).fill(0);
-  DB.leaves.filter(l=>l.statut==='approuve' && pd(l.debut) && pd(l.debut).getFullYear()===year)
-    .forEach(l=>{ monthCounts[pd(l.debut).getMonth()]+=l.jours; });
-  const maxMonth=Math.max(1,...monthCounts);
-  const monthBars=monthCounts.map((v,m)=>`<div class="mini-bar"><i style="height:${Math.max(3,Math.round(v/maxMonth*76))}%"></i><b>${v||''}</b><small>${MOIS[m].slice(0,3)}</small></div>`).join('');
-  const deptMap={}; DB.staff.forEach(s=>{ const k=s.departement||'Sans service'; deptMap[k]=(deptMap[k]||0)+1; });
-  const deptEntries=Object.entries(deptMap).sort((a,b)=>b[1]-a[1]);
-  const maxDept=Math.max(1,...deptEntries.map(e=>e[1]));
-  const deptHTML=deptEntries.length?deptEntries.map(([name,cnt])=>`<div class="dept-row"><span class="name">${name}</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(6,cnt/maxDept*100)}%"></div></div><span class="dept-num">${cnt}</span></div>`).join(''):emptyState('inbox','Aucun service défini','Renseignez un département sur les fiches personnel.');
-  const returns=DB.leaves.filter(l=>l.statut==='approuve' && pd(l.fin)>=pd(t) && pd(l.fin)<=pd(t)+7*86400000).sort((a,b)=>a.fin.localeCompare(b.fin)).slice(0,6);
-  const returnsHTML=returns.length?returns.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">Retour le ${fmtFR(l.fin)}</div></div><div class="p-right">${chipType(l.type)}</div></div>`;}).join(''):emptyState('check','Aucun retour sous 7 jours','Les retours à venir apparaîtront ici.');
-  const recent=DB.leaves.slice().sort((a,b)=>(b.cree||b.debut).localeCompare(a.cree||a.debut)).slice(0,5);
-  const recentHTML=recent.length?recent.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} → ${fmtFR(l.fin)}</div></div><div class="p-right">${statusEl(l.statut)}</div></div>`;}).join(''):emptyState('inbox','Aucune saisie récente','Les derniers enregistrements apparaîtront ici.');
   const weekDays=[];
   for(let i=0;i<7;i++){
     const d=new Date(pd(t)); d.setDate(d.getDate()+i); const iso=isoOf(d);
@@ -900,6 +888,7 @@ function viewDashboard(){
       <div class="p-right">${chipType(l.type)}</div>
     </div>`;
   }).join('') : emptyState('calendar','Aucun congé planifié','Les congés à venir s\'afficheront ici.');
+
   const now=new Date();
   const todayLabel=`${now.getDate()} ${MOIS_LONG[now.getMonth()]} ${now.getFullYear()}`;
   const dashHero=`<div class="dash-hero"><div><h2>${DB.org||'Registre des congés'}</h2><p>${todayLabel} · Vue d'ensemble de la présence, des demandes et des alertes</p></div><div class="hero-stats"><div class="hero-stat"><b>${pending.length}</b><span>En attente</span></div><div class="hero-stat"><b>${onLeave.length}</b><span>Absents</span></div><div class="hero-stat"><b>${soon.length}</b><span>Congés à venir</span></div></div></div>`;
@@ -907,7 +896,11 @@ function viewDashboard(){
   return `<section class="view">
     <div class="view-head"><div>
       <h2>Tableau de bord</h2>
-      <p>Vue d'ensemble de la présence, des demandes et des alertes · année de référence ${year}</p>
+      <p>Les informations essentielles, sans surcharge · année de référence ${year}</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="go('stats')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Statistiques</button>
+      <button class="btn primary" onclick="openLeaveForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nouveau congé</button>
     </div></div>
     ${dashHero}
     ${kpis}
@@ -939,31 +932,78 @@ function viewDashboard(){
         <div class="panel-b">${upcomingHTML}</div>
       </div>
     </div>
-    <div class="grid2" style="margin-top:18px">
-      <div class="panel">
-        <div class="panel-h"><h3>Volume d'absences par mois · ${year}</h3><span class="tag">${totalAdmin+totalSick} j</span></div>
-        <div class="panel-b"><div class="mini-bars">${monthBars}</div></div>
-      </div>
-      <div class="panel">
-        <div class="panel-h"><h3>Répartition par service</h3><span class="tag">${deptEntries.length}</span></div>
-        <div class="panel-b">${deptHTML}</div>
-      </div>
-    </div>
-    <div class="grid2" style="margin-top:18px">
-      <div class="panel">
-        <div class="panel-h"><h3>Retours sous 7 jours</h3><span class="tag">${returns.length}</span></div>
-        <div class="panel-b">${returnsHTML}</div>
-      </div>
-      <div class="panel">
-        <div class="panel-h"><h3>Dernières saisies</h3><button class="btn sm ghost" onclick="go('registry')">Tout voir</button></div>
-        <div class="panel-b">${recentHTML}</div>
-      </div>
+  </section>`;
+}
+
+/* ============================================================
+   Vue : Statistiques
+   ============================================================ */
+function viewStats(){
+  const year=STAT_YEAR || DB.year;
+  const totalAdmin = DB.staff.reduce((acc,s)=>acc+takenAdmin(s.id,year),0);
+  const totalSick = DB.staff.reduce((acc,s)=>acc+takenSick(s.id,year),0);
+  const totalLeft = DB.staff.reduce((acc,s)=>acc+Math.max(0,entitlement(s)-takenAdmin(s.id,year)),0);
+  const totalEnt = DB.staff.reduce((acc,s)=>acc+entitlement(s),0);
+  const monthCounts=Array(12).fill(0);
+  DB.leaves.filter(l=>l.statut==='approuve' && pd(l.debut) && pd(l.debut).getFullYear()===year)
+    .forEach(l=>{ monthCounts[pd(l.debut).getMonth()]+=l.jours; });
+  const maxMonth=Math.max(1,...monthCounts);
+  const monthBars=monthCounts.map((v,m)=>`<div class="mini-bar"><i style="height:${Math.max(3,Math.round(v/maxMonth*76))}%"></i><b>${v||''}</b><small>${MOIS[m].slice(0,3)}</small></div>`).join('');
+  const deptMap={}; DB.staff.forEach(s=>{ const k=s.departement||'Sans service'; deptMap[k]=(deptMap[k]||0)+1; });
+  const deptEntries=Object.entries(deptMap).sort((a,b)=>b[1]-a[1]);
+  const maxDept=Math.max(1,...deptEntries.map(e=>e[1]));
+  const deptHTML=deptEntries.length?deptEntries.map(([name,cnt])=>`<div class="dept-row"><span class="name">${name}</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(6,cnt/maxDept*100)}%"></div></div><span class="dept-num">${cnt}</span></div>`).join(''):emptyState('inbox','Aucun service défini','Renseignez un département sur les fiches personnel.');
+  const st={approuve:0,en_attente:0,refuse:0};
+  DB.leaves.filter(l=>pd(l.debut)&&pd(l.debut).getFullYear()===year).forEach(l=>{ st[l.statut]=(st[l.statut]||0)+1; });
+  const stTotal=Math.max(1,st.approuve+st.en_attente+st.refuse);
+  const statusRows=[
+    ['Approuvés',st.approuve,'#34C759'],
+    ['En attente',st.en_attente,'#FF9F0A'],
+    ['Refusés',st.refuse,'#FF3B30']
+  ].map(([name,cnt,col])=>`<div class="dept-row"><span class="name">${name}</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(4,cnt/stTotal*100)}%;background:${col}"></div></div><span class="dept-num">${cnt}</span></div>`).join('');
+  const typeTotal=Math.max(1,totalAdmin+totalSick);
+  const typeHTML=`
+    <div class="dept-row"><span class="name">Administratifs</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(4,totalAdmin/typeTotal*100)}%"></div></div><span class="dept-num">${totalAdmin} j</span></div>
+    <div class="dept-row"><span class="name">Maladie</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(4,totalSick/typeTotal*100)}%;background:#C96A1F"></div></div><span class="dept-num">${totalSick} j</span></div>`;
+  const statRows=DB.staff.slice().sort((a,b)=>(entitlement(a)-takenAdmin(a.id,year))-(entitlement(b)-takenAdmin(b.id,year))).map(s=>{
+    const ent=entitlement(s),pris=takenAdmin(s.id,year),rest=ent-pris,mal=takenSick(s.id,year);
+    const pct=ent?Math.round(pris/ent*100):0;
+    const cls=rest<=2?'crit':rest<=6?'warn':'';
+    const col=rest<=0?'var(--no)':rest<=2?'var(--wait)':'var(--ink)';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.matricule}</div></div></div></td>
+      <td>${s.departement||'<span style="color:var(--ink-faint)">—</span>'}</td>
+      <td>${ent}</td><td>${pris}</td>
+      <td style="font-weight:700;color:${col}">${rest}</td>
+      <td>${mal}</td>
+      <td><div class="bal" style="min-width:88px"><div class="bal-track"><div class="bal-fill ${cls}" style="width:${pct}%"></div></div><div class="bal-lab"><span style="font-size:11px">${pct}%</span></div></div></td>
+    </tr>`;
+  }).join('');
+  return `<section class="view">
+    <div class="view-head">
+      <div><h2>Statistiques</h2><p>Analyse détaillée des absences, soldes et services · année ${year}</p></div>
+      <div style="display:flex;gap:8px;align-items:center"><label style="font-size:12px;font-weight:600;color:var(--ink-soft)">Année</label><input type="number" id="statYear" value="${year}" onchange="setStatYear(this.value)" style="width:92px"></div>
     </div>
     <div class="stat-grid">
       <div class="stat-box"><div class="l">Congés administratifs pris</div><div class="v">${totalAdmin}<small> j</small></div></div>
-      <div class="stat-box"><div class="l">Arrêts maladie · ${year}</div><div class="v">${totalSick}<small> j</small></div></div>
-      <div class="stat-box"><div class="l">Jours restants par personne</div><div class="v">${DB.staff.length?Math.round(totalLeft/DB.staff.length*10)/10:0}<small> j en moyenne</small></div></div>
-      <div class="stat-box"><div class="l">Taux d'utilisation des droits</div><div class="v">${totalEnt?Math.round(totalAdmin/totalEnt*100):0}<small> %</small></div></div>
+      <div class="stat-box"><div class="l">Arrêts maladie</div><div class="v">${totalSick}<small> j</small></div></div>
+      <div class="stat-box"><div class="l">Jours restants cumulés</div><div class="v">${totalLeft}<small> j</small></div></div>
+      <div class="stat-box"><div class="l">Taux d'utilisation</div><div class="v">${totalEnt?Math.round(totalAdmin/totalEnt*100):0}<small> %</small></div></div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel"><div class="panel-h"><h3>Volume d'absences par mois</h3><span class="tag">${year}</span></div><div class="panel-b"><div class="mini-bars">${monthBars}</div></div></div>
+      <div class="panel"><div class="panel-h"><h3>Répartition par service</h3><span class="tag">${deptEntries.length}</span></div><div class="panel-b">${deptHTML}</div></div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel"><div class="panel-h"><h3>Statut des demandes</h3><span class="tag">${st.approuve+st.en_attente+st.refuse}</span></div><div class="panel-b">${statusRows}</div></div>
+      <div class="panel"><div class="panel-h"><h3>Administratif / Maladie</h3><span class="tag">${totalAdmin+totalSick} j</span></div><div class="panel-b">${typeHTML}</div></div>
+    </div>
+    <div class="panel" style="margin-top:18px">
+      <div class="panel-h"><h3>Soldes détaillés · ${year}</h3><span class="tag">${DB.staff.length} collaborateurs</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Collaborateur</th><th>Service</th><th>Droit</th><th>Pris</th><th>Restant</th><th>Maladie</th><th>Taux</th></tr></thead>
+        <tbody>${statRows||'<tr><td colspan="7"><div style="text-align:center;color:var(--ink-faint);padding:20px">Aucun collaborateur</div></td></tr>'}</tbody>
+      </table></div>
     </div>
   </section>`;
 }
@@ -993,17 +1033,27 @@ function emptyState(icon,title,sub){
 /* ============================================================
    Vue : Personnel
    ============================================================ */
-let SF = {q:'',dep:''};
+let SF = {q:'',dep:'',sort:'name'};
+let STAT_YEAR = 0;
+function setStatYear(v){ STAT_YEAR=parseInt(v)||0; render(); }
 function viewStaff(){
   const year=DB.year;
   let list = DB.staff.slice();
   if(SF.dep) list=list.filter(s=>s.departement===SF.dep);
   if(SF.q){ const q=SF.q.toLowerCase(); list=list.filter(s=>(s.full+' '+(s.poste||'')+' '+(s.departement||'')).toLowerCase().includes(q)); }
+  if(SF.sort==='left_asc') list.sort((a,b)=>(entitlement(a)-takenAdmin(a.id,year))-(entitlement(b)-takenAdmin(b.id,year)));
+  else if(SF.sort==='left_desc') list.sort((a,b)=>(entitlement(b)-takenAdmin(b.id,year))-(entitlement(a)-takenAdmin(a.id,year)));
+  else if(SF.sort==='service') list.sort((a,b)=>(a.departement||'zzz').localeCompare(b.departement||'zzz'));
+  else list.sort((a,b)=>a.full.localeCompare(b.full));
+  const onToday=DB.staff.filter(s=>isOnLeaveToday(s.id)).length;
+  const totalLeft=DB.staff.reduce((a,s)=>a+Math.max(0,entitlement(s)-takenAdmin(s.id,year)),0);
+  const totalUsed=DB.staff.reduce((a,s)=>a+takenAdmin(s.id,year),0);
   const cards = list.map(s=>{
     const ent=entitlement(s), usedA=takenAdmin(s.id,year), left=ent-usedA, usedS=takenSick(s.id,year);
     const pct=ent>0?Math.min(100,Math.round(usedA/ent*100)):0;
     const cls=left<=2?'crit':left<=6?'warn':'';
     const on=isOnLeaveToday(s.id);
+    const contact=[s.email?`✉ ${s.email}`:'',s.telephone?`☎ ${s.telephone}`:''].filter(Boolean).join(' · ');
     return `<div class="scard" onclick="openDetail('${s.id}')">
       <div class="scard-top">
         ${avatar(s)}
@@ -1021,25 +1071,35 @@ function viewStaff(){
         <span>Pris&nbsp;: <b style="color:var(--ink)">${usedA} j</b></span>
         <span><span class="dot" style="background:var(--mal);display:inline-block;margin-right:4px"></span>Maladie&nbsp;: <b style="color:var(--ink)">${usedS} j</b></span>
       </div>
+      ${contact?`<div style="margin-top:9px;font-size:11.5px;color:var(--ink-faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${contact}</div>`:''}
+      <div style="display:flex;gap:8px;margin-top:13px">
+        <button class="btn sm" onclick="event.stopPropagation();openLeaveForm('','${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Congé</button>
+        <button class="btn sm ghost" onclick="event.stopPropagation();openStaffForm('${s.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Fiche</button>
+      </div>
     </div>`;
   }).join('');
   const deps=[...new Set(DB.staff.map(s=>s.departement).filter(Boolean))].sort();
   const depOpts=deps.map(d=>`<option value="${d}" ${SF.dep===d?'selected':''}>${d}</option>`).join('');
   return `<section class="view">
     <div class="view-head">
-      <div><h2>Personnel</h2><p>${list.length} collaborateur${list.length>1?'s':''} sur ${DB.staff.length} · soldes calculés sur ${year}</p></div>
-      <button class="btn" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+      <div><h2>Personnel</h2><p>${list.length} collaborateur${list.length>1?'s':''} sur ${DB.staff.length} · ${onToday} absent(s) aujourd'hui · ${totalUsed} j pris / ${totalLeft} j restants</p></div>
+      <button class="btn primary" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
     </div>
     <div class="toolbar">
       <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
         <input type="text" placeholder="Rechercher un collaborateur…" value="${SF.q}" oninput="SF.q=this.value;render()"></div>
       <select onchange="SF.dep=this.value;render()"><option value="">Tous les services</option>${depOpts}</select>
+      <select onchange="SF.sort=this.value;render()">
+        <option value="name" ${SF.sort==='name'?'selected':''}>Ordre alphabétique</option>
+        <option value="left_asc" ${SF.sort==='left_asc'?'selected':''}>Soldes les plus faibles</option>
+        <option value="left_desc" ${SF.sort==='left_desc'?'selected':''}>Soldes les plus élevés</option>
+        <option value="service" ${SF.sort==='service'?'selected':''}>Par service</option>
+      </select>
       ${SF.q||SF.dep?`<span class="filter-pill">${SF.dep||SF.q}<button onclick="SF.q='';SF.dep='';render()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button></span>`:''}
     </div>
     <div class="staff-grid">${cards||emptyState('inbox','Aucun collaborateur','Ajustez vos filtres ou ajoutez une fiche.')}</div>
   </section>`;
 }
-
 /* ============================================================
    Vue : Calendrier (timeline annuelle)
    ============================================================ */
@@ -1166,6 +1226,8 @@ function viewSettings(){
     <td><div style="display:flex;align-items:center;gap:9px">${avatar(s)}<div><div class="row-name">${s.full}</div><div class="matricule">${s.matricule}</div></div></div></td>
     <td>${s.poste||'<span style="color:var(--ink-faint)">—</span>'}</td>
     <td>${s.departement||'<span style="color:var(--ink-faint)">—</span>'}</td>
+    <td>${s.email||'<span style="color:var(--ink-faint)">—</span>'}</td>
+    <td>${s.telephone||'<span style="color:var(--ink-faint)">—</span>'}</td>
     <td style="font-weight:600">${s.droitAnnuel} j</td>
     <td style="font-weight:600">${s.report} j</td>
     <td class="actions">
@@ -1193,7 +1255,7 @@ function viewSettings(){
     <div class="panel" style="margin-bottom:18px">
       <div class="panel-h"><h3>Personnel &amp; droits annuels</h3><button class="btn sm" onclick="openStaffForm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button></div>
       <div class="tbl-wrap" style="border:none;box-shadow:none;border-radius:0"><table>
-        <thead><tr><th>Collaborateur</th><th>Poste</th><th>Département</th><th>Droit annuel</th><th>Report N-1</th><th></th></tr></thead>
+        <thead><tr><th>Collaborateur</th><th>Poste</th><th>Département</th><th>Email</th><th>Téléphone</th><th>Droit annuel</th><th>Report N-1</th><th></th></tr></thead>
         <tbody>${staffRows}</tbody>
       </table></div>
     </div>
@@ -1253,9 +1315,9 @@ function viewSettings(){
     </div>
   </section>`;
 }
-function openLeaveForm(id){
+function openLeaveForm(id, preselectId){
   const ed = id ? DB.leaves.find(l=>l.id===id) : null;
-  const opts = DB.staff.map(s=>`<option value="${s.id}" ${ed&&ed.staffId===s.id?'selected':''}>${s.full}</option>`).join('');
+  const opts = DB.staff.map(s=>`<option value="${s.id}" ${(ed&&ed.staffId===s.id)||(!ed&&preselectId===s.id)?'selected':''}>${s.full}</option>`).join('');
   const isMal = ed?ed.type==='maladie':false;
   const html=`
     <div class="modal-h">
@@ -1345,7 +1407,8 @@ function openDetail(id){
   const html=`
     <div class="modal-h">
       <div style="display:flex;gap:13px;align-items:center">${avatar(s,'')}<div>
-        <h3>${s.full}</h3><p>${s.matricule}${s.poste?' · '+s.poste:''}${s.departement?' · '+s.departement:''}</p></div></div>
+        <h3>${s.full}</h3><p>${s.matricule}${s.poste?' · '+s.poste:''}${s.departement?' · '+s.departement:''}</p>
+        ${s.email||s.telephone?`<div style="font-size:11.5px;color:var(--ink-faint);margin-top:3px">${[s.email,s.telephone].filter(Boolean).join(' · ')}</div>`:''}</div></div>
       <button class="x" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-b">
@@ -1382,6 +1445,8 @@ function openStaffForm(id){
         <div class="fg"><label>Prénom(s)</label><input id="sf_prenom" value="${s?(s.prenom||'').replace(/"/g,'&quot;'):''}" placeholder="Franck"></div>
         <div class="fg"><label>Poste</label><input id="sf_poste" value="${s?(s.poste||'').replace(/"/g,'&quot;'):''}" placeholder="Optionnel"></div>
         <div class="fg"><label>Département</label><input id="sf_dep" value="${s?(s.departement||'').replace(/"/g,'&quot;'):''}" placeholder="Optionnel"></div>
+        <div class="fg"><label>Email</label><input id="sf_email" type="email" value="${s?(s.email||'').replace(/"/g,'&quot;'):''}" placeholder="optionnel@exemple.com"></div>
+        <div class="fg"><label>Téléphone</label><input id="sf_tel" type="tel" value="${s?(s.telephone||'').replace(/"/g,'&quot;'):''}" placeholder="+229 01 02 03 04"></div>
         <div class="fg"><label>Droit annuel <span class="help">(jours calendaires)</span></label><input id="sf_droit" type="number" min="0" value="${s?s.droitAnnuel:30}"></div>
         <div class="fg"><label>Report N-1 <span class="help">(jours)</span></label><input id="sf_report" type="number" min="0" value="${s?s.report:0}"></div>
       </div>
@@ -1400,6 +1465,8 @@ function saveStaff(id){
     nom, prenom, full:(nom+' '+prenom).trim(),
     poste:document.getElementById('sf_poste').value.trim(),
     departement:document.getElementById('sf_dep').value.trim(),
+    email:document.getElementById('sf_email').value.trim(),
+    telephone:document.getElementById('sf_tel').value.trim(),
     droitAnnuel:Math.max(0,parseInt(document.getElementById('sf_droit').value)||0),
     report:Math.max(0,parseInt(document.getElementById('sf_report').value)||0)
   };
