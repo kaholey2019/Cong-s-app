@@ -213,6 +213,18 @@
   .filter-pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent-soft);color:var(--accent-ink);border:1px solid var(--accent);border-radius:20px;padding:5px 11px;font-size:11.5px;font-weight:600}
   .filter-pill button{border:none;background:none;color:inherit;cursor:pointer;padding:0;display:grid;place-items:center}
   .filter-pill svg{width:11px;height:11px}
+  .mini-bars{display:flex;align-items:flex-end;gap:7px;height:118px;padding:12px 2px 0}
+  .mini-bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%;min-width:0}
+  .mini-bar i{display:block;width:100%;max-width:26px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,#2A63C0,#1B4A93);min-height:3px;transition:filter .15s}
+  .mini-bar:hover i{filter:brightness(1.1)}
+  .mini-bar b{font-size:10px;font-weight:600;color:var(--ink)}
+  .mini-bar small{font-size:9.5px;color:var(--ink-faint);text-align:center}
+  .dept-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12.5px}
+  .dept-row .name{width:118px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-soft)}
+  .dept-track{flex:1;height:8px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+  .dept-fill{height:100%;background:linear-gradient(90deg,#0A84FF,#2A63C0);border-radius:6px;min-width:3px}
+  .dept-num{width:30px;text-align:right;font-weight:600;color:var(--ink)}
+  .stat-box .v{font-family:'Inter',sans-serif}
 
   /* ---------- Table ---------- */
   .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
@@ -771,6 +783,19 @@ function viewDashboard(){
   const upcoming = DB.leaves.filter(l=>l.statut==='approuve' && l.debut>t)
     .sort((a,b)=>a.debut.localeCompare(b.debut));
   const soon = upcoming.filter(l=>pd(l.debut)-pd(t)<=30*86400000).slice(0,6);
+  const monthCounts=Array(12).fill(0);
+  DB.leaves.filter(l=>l.statut==='approuve' && pd(l.debut) && pd(l.debut).getFullYear()===year)
+    .forEach(l=>{ monthCounts[pd(l.debut).getMonth()]+=l.jours; });
+  const maxMonth=Math.max(1,...monthCounts);
+  const monthBars=monthCounts.map((v,m)=>`<div class="mini-bar"><i style="height:${Math.max(3,Math.round(v/maxMonth*76))}%"></i><b>${v||''}</b><small>${MOIS[m].slice(0,3)}</small></div>`).join('');
+  const deptMap={}; DB.staff.forEach(s=>{ const k=s.departement||'Sans service'; deptMap[k]=(deptMap[k]||0)+1; });
+  const deptEntries=Object.entries(deptMap).sort((a,b)=>b[1]-a[1]);
+  const maxDept=Math.max(1,...deptEntries.map(e=>e[1]));
+  const deptHTML=deptEntries.length?deptEntries.map(([name,cnt])=>`<div class="dept-row"><span class="name">${name}</span><div class="dept-track"><div class="dept-fill" style="width:${Math.max(6,cnt/maxDept*100)}%"></div></div><span class="dept-num">${cnt}</span></div>`).join(''):emptyState('inbox','Aucun service défini','Renseignez un département sur les fiches personnel.');
+  const returns=DB.leaves.filter(l=>l.statut==='approuve' && pd(l.fin)>=pd(t) && pd(l.fin)<=pd(t)+7*86400000).sort((a,b)=>a.fin.localeCompare(b.fin)).slice(0,6);
+  const returnsHTML=returns.length?returns.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">Retour le ${fmtFR(l.fin)}</div></div><div class="p-right">${chipType(l.type)}</div></div>`;}).join(''):emptyState('check','Aucun retour sous 7 jours','Les retours à venir apparaîtront ici.');
+  const recent=DB.leaves.slice().sort((a,b)=>(b.cree||b.debut).localeCompare(a.cree||a.debut)).slice(0,5);
+  const recentHTML=recent.length?recent.map(l=>{const s=staffById(l.staffId); if(!s) return ''; return `<div class="person">${avatar(s)}<div class="p-main"><div class="p-name">${s.full}</div><div class="p-meta">${fmtFR(l.debut)} → ${fmtFR(l.fin)}</div></div><div class="p-right">${statusEl(l.statut)}</div></div>`;}).join(''):emptyState('inbox','Aucune saisie récente','Les derniers enregistrements apparaîtront ici.');
   const alerts=[];
   DB.staff.forEach(s=>{
     const left=entitlement(s)-takenAdmin(s.id,year);
@@ -854,6 +879,26 @@ function viewDashboard(){
       <div class="panel">
         <div class="panel-h"><h3>Congés à venir · 30 jours</h3><span class="tag">${soon.length}</span></div>
         <div class="panel-b">${upcomingHTML}</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="panel-h"><h3>Volume d'absences par mois · ${year}</h3><span class="tag">${totalAdmin+totalSick} j</span></div>
+        <div class="panel-b"><div class="mini-bars">${monthBars}</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Répartition par service</h3><span class="tag">${deptEntries.length}</span></div>
+        <div class="panel-b">${deptHTML}</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="panel">
+        <div class="panel-h"><h3>Retours sous 7 jours</h3><span class="tag">${returns.length}</span></div>
+        <div class="panel-b">${returnsHTML}</div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h3>Dernières saisies</h3><button class="btn sm ghost" onclick="go('registry')">Tout voir</button></div>
+        <div class="panel-b">${recentHTML}</div>
       </div>
     </div>
     <div class="stat-grid">
